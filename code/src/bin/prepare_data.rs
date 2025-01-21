@@ -132,8 +132,8 @@ fn dump_to_pkl(x: Vec<Vec<f32>>, y_t: Vec<i32>) {
     let y_serialized = serde_pickle::to_vec(&y_map, Default::default()).unwrap();
 
     // Save to disk
-    std::fs::write("x_n_s.pkl", &x_serialized).unwrap();
-    std::fs::write("y_t_s.pkl", &y_serialized).unwrap();
+    std::fs::write("../data/x.pkl", &x_serialized).unwrap();
+    std::fs::write("../data/y_t.pkl", &y_serialized).unwrap();
 }
 
 /// Display data in a table.
