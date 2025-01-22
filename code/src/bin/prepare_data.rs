@@ -178,18 +178,31 @@ fn dump_to_pkl(x: Vec<Vec<f32>>, y_t: Vec<i32>, prefix: &str) {
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 
-fn split_data(x: Vec<Vec<f32>>, y_t: Vec<i32>) -> (Vec<Vec<f32>>, Vec<i32>, Vec<Vec<f32>>, Vec<i32>) {
+fn split_data(
+    x: Vec<Vec<f32>>,
+    y_t: Vec<i32>,
+) -> (Vec<Vec<f32>>, Vec<i32>, Vec<Vec<f32>>, Vec<i32>) {
     let mut rng = thread_rng();
     let mut combined: Vec<(Vec<f32>, i32)> = x.into_iter().zip(y_t.into_iter()).collect();
     combined.shuffle(&mut rng);
 
     let num_records = combined.len();
-    let num_train = (num_records as f32 * 0.8).round() as usize;
+    let num_train = (num_records as f32 * 0.8) as usize;
 
-    let (train_data, test_data): (Vec<_>, Vec<_>) = combined.into_iter().enumerate().partition(|&(i, _)| i >= num_train);
+    // Split data into training and testing sets
+    let (train_data, test_data): (Vec<_>, Vec<_>) = combined
+        .into_iter()
+        .enumerate()
+        .partition(|&(i, _)| i >= num_train);
 
-    let (x_train, y_t_train): (Vec<_>, Vec<_>) = train_data.into_iter().map(|(_, data)| data).unzip();
-    let (x_test, y_t_test): (Vec<_>, Vec<_>) = test_data.into_iter().map(|(_, data)| data).unzip();
+    // Sort by y_t class
+    let mut train_sorted: Vec<_> = train_data.into_iter().map(|(_, data)| data).collect();
+    train_sorted.sort_by_key(|&(_, y)| y);
+    let (x_train, y_t_train): (Vec<_>, Vec<_>) = train_sorted.into_iter().unzip();
+
+    let mut test_sorted: Vec<_> = test_data.into_iter().map(|(_, data)| data).collect();
+    test_sorted.sort_by_key(|&(_, y)| y);
+    let (x_test, y_t_test): (Vec<_>, Vec<_>) = test_sorted.into_iter().unzip();
 
     (x_train, y_t_train, x_test, y_t_test)
 }
