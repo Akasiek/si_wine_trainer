@@ -16,7 +16,7 @@ fn main() {
     let artifact_dir = "./artifacts";
     train::<MyAutodiffBackend>(
         artifact_dir,
-        TrainingConfig::new(WineModelConfig::new(10, 512), AdamConfig::new()),
+        TrainingConfig::new(WineModelConfig::new(3, 64), AdamConfig::new()),
         device.clone(),
     );
 

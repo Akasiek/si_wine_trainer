@@ -13,15 +13,15 @@ use burn::train::LearnerBuilder;
 pub struct TrainingConfig {
     pub model: WineModelConfig,
     pub optimizer: AdamConfig,
-    #[config(default = 100)]
+    #[config(default = 300)]
     pub num_epochs: usize,
-    #[config(default = 64)]
+    #[config(default = 16)]
     pub batch_size: usize,
-    #[config(default = 4)]
+    #[config(default = 8)]
     pub num_workers: usize,
     #[config(default = 42)]
     pub seed: u64,
-    #[config(default = 1.0e-4)]
+    #[config(default = 1.0e-5)]
     pub learning_rate: f64,
 }
 
