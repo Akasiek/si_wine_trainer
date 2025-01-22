@@ -1,5 +1,5 @@
 use cli_table::*;
-use si_project::wine::Wine;
+use si_project::dataset::WineItem;
 use std::collections::BTreeMap;
 use std::default::Default;
 use std::fs::read_to_string;
@@ -38,11 +38,11 @@ fn load_data_file() -> String {
 }
 
 /// Parse raw data into a Vector of `Wine` structs.
-fn parse_data(data: String) -> Vec<Wine> {
+fn parse_data(data: String) -> Vec<WineItem> {
     data.lines()
         .map(|line| {
             let mut wine_data = line.split(',').map(|s| s.parse::<f32>().unwrap());
-            Wine {
+            WineItem {
                 class: wine_data.next().unwrap() as i32,
                 alcohol: wine_data.next().unwrap(),
                 malic_acid: wine_data.next().unwrap(),
@@ -63,7 +63,7 @@ fn parse_data(data: String) -> Vec<Wine> {
 }
 
 /// Extract `x` (Wine attributes 1-13) and `y_t` (class attribute).
-fn extract_x_and_y_t(wines: &[Wine]) -> (Vec<Vec<f32>>, Vec<i32>) {
+fn extract_x_and_y_t(wines: &[WineItem]) -> (Vec<Vec<f32>>, Vec<i32>) {
     let num_records = wines.len();
     let mut x = vec![vec![0.0; 13]; num_records];
     let mut y_t = vec![0; num_records];
