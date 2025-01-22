@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-burn = "0.16"
+burn = { version = "0.16", features = ['train', 'autodiff', 'candle-cuda'] }
 serde = "1.0"
 serde-pickle = "1.2.0"
 cli-table = "0.4"
