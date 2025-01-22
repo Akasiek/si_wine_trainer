@@ -193,7 +193,7 @@ fn split_data(
     let (train_data, test_data): (Vec<_>, Vec<_>) = combined
         .into_iter()
         .enumerate()
-        .partition(|&(i, _)| i >= num_train);
+        .partition(|&(i, _)| i < num_train);
 
     // Sort by y_t class
     let mut train_sorted: Vec<_> = train_data.into_iter().map(|(_, data)| data).collect();
