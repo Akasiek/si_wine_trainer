@@ -1,7 +1,7 @@
 use burn::data::dataloader::batcher::Batcher;
 use burn::data::dataset::{Dataset, InMemDataset};
 use burn::prelude::Backend;
-use burn::tensor::{Int, Tensor, TensorData};
+use burn::tensor::{Int, Tensor};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fmt;
@@ -155,7 +155,7 @@ impl<B: Backend> Batcher<Wine, WineBatch<B>> for WineBatcher<B> {
         let x = data
             .iter()
             .map(|wine| {
-                Tensor::<B, 2>::from(TensorData::from([[
+                Tensor::<B, 2>::from_data([[
                     wine.alcohol,
                     wine.malic_acid,
                     wine.ash,
@@ -169,13 +169,13 @@ impl<B: Backend> Batcher<Wine, WineBatch<B>> for WineBatcher<B> {
                     wine.hue,
                     wine.od280_od315_of_diluted_wines,
                     wine.proline,
-                ]]))
+                ]], &self.device)
             })
             .collect::<Vec<_>>();
 
         let y = data
             .iter()
-            .map(|wine| Tensor::<B, 1, Int>::from(TensorData::from([wine.class])))
+            .map(|wine| Tensor::<B, 1, Int>::from_data([wine.class], &self.device))
             .collect::<Vec<_>>();
 
         let x = Tensor::<B, 2>::cat(x, 0).to_device(&self.device);
