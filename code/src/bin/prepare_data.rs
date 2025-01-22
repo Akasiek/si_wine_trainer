@@ -22,8 +22,11 @@ fn main() {
     println!("\n\n\nData after normalization:");
     table_data(&x_norm, &y_t);
 
-    // 4. Save everything to an HDF5 file
-    dump_to_pkl(x_norm, y_t);
+    let (x_train, y_t_train, x_test, y_t_test) = split_data(x_norm, y_t);
+
+    // 5. Save everything to an HDF5 file
+    dump_to_pkl(x_train, y_t_train, "train");
+    dump_to_pkl(x_test, y_t_test, "test");
 
     println!("Data processing and saving completed.");
 
@@ -119,23 +122,6 @@ fn normalize_x(x: &Vec<Vec<f32>>) -> Vec<Vec<f32>> {
     x_norm
 }
 
-/// Save `x` and `y_t` to disk in pickle format.
-fn dump_to_pkl(x: Vec<Vec<f32>>, y_t: Vec<i32>) {
-    // Create BTreeMaps to serialize
-    let mut x_map = BTreeMap::new();
-    let mut y_map = BTreeMap::new();
-    x_map.insert(String::from("x"), x);
-    y_map.insert(String::from("y_t"), y_t);
-
-    // Serialize to pickle format
-    let x_serialized = serde_pickle::to_vec(&x_map, Default::default()).unwrap();
-    let y_serialized = serde_pickle::to_vec(&y_map, Default::default()).unwrap();
-
-    // Save to disk
-    std::fs::write("../data/x.pkl", &x_serialized).unwrap();
-    std::fs::write("../data/y_t.pkl", &y_serialized).unwrap();
-}
-
 /// Display data in a table.
 fn table_data(x: &Vec<Vec<f32>>, y_t: &Vec<i32>) {
     let mut table = Vec::new();
@@ -169,4 +155,34 @@ fn table_data(x: &Vec<Vec<f32>>, y_t: &Vec<i32>) {
     ]);
 
     print_stdout(table).unwrap();
+}
+
+/// Save `x` and `y_t` to disk in pickle format.
+fn dump_to_pkl(x: Vec<Vec<f32>>, y_t: Vec<i32>, prefix: &str) {
+    // Create BTreeMaps to serialize
+    let mut x_map = BTreeMap::new();
+    let mut y_map = BTreeMap::new();
+    x_map.insert(String::from("x"), x);
+    y_map.insert(String::from("y_t"), y_t);
+
+    // Serialize to pickle format
+    let x_serialized = serde_pickle::to_vec(&x_map, Default::default()).unwrap();
+    let y_serialized = serde_pickle::to_vec(&y_map, Default::default()).unwrap();
+
+    // Save to disk
+    std::fs::write(format!("./data/x_{}.pkl", prefix), &x_serialized).unwrap();
+    std::fs::write(format!("./data/y_t_{}.pkl", prefix), &y_serialized).unwrap();
+}
+
+/// Split data into training and testing sets.
+fn split_data(x: Vec<Vec<f32>>, y_t: Vec<i32>) -> (Vec<Vec<f32>>, Vec<i32>, Vec<Vec<f32>>, Vec<i32>) {
+    let num_records = x.len();
+    let num_train = (num_records as f32 * 0.8) as usize;
+
+    let x_train = x.iter().take(num_train).cloned().collect();
+    let y_t_train = y_t.iter().take(num_train).cloned().collect();
+    let x_test = x.iter().skip(num_train).cloned().collect();
+    let y_t_test = y_t.iter().skip(num_train).cloned().collect();
+
+    (x_train, y_t_train, x_test, y_t_test)
 }
