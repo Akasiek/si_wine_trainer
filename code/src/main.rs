@@ -2,8 +2,11 @@ use burn::{
     backend::{Autodiff, Wgpu},
     optim::AdamConfig,
 };
+use burn::data::dataset::Dataset;
+use si_project::inference::infer;
 use si_project::model::WineModelConfig;
 use si_project::training::{train, TrainingConfig};
+use si_project::wine::WineDataset;
 
 fn main() {
     type MyBackend = Wgpu<f32, i32>;
@@ -16,4 +19,6 @@ fn main() {
         TrainingConfig::new(WineModelConfig::new(10, 512), AdamConfig::new()),
         device.clone(),
     );
+
+    infer::<MyBackend>(artifact_dir, device.clone(), WineDataset::test().get(0).unwrap());
 }
