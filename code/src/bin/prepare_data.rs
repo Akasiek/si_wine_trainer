@@ -1,8 +1,8 @@
+use cli_table::*;
 use si_project::wine::Wine;
 use std::collections::BTreeMap;
 use std::default::Default;
 use std::fs::read_to_string;
-use cli_table::*;
 
 fn main() {
     let data = load_data_file();
@@ -16,20 +16,20 @@ fn main() {
 
     // Sorting by `y_t` is unnecessary for this dataset. Data is already sorted by class.
 
-    // 3. Display data in a table
-    println!("Data before normalization:");
-    table_data(&x, &y_t);
-    println!("\n\n\nData after normalization:");
-    table_data(&x_norm, &y_t);
-
+    // 3. Split data into training and testing sets
     let (x_train, y_t_train, x_test, y_t_test) = split_data(x_norm, y_t);
 
-    // 5. Save everything to an HDF5 file
+    // 3. Display data in a table
+    println!("Data test:");
+    table_data(&x_train, &y_t_train);
+    println!("\n\n\nData train:");
+    table_data(&x_test, &y_t_test);
+
+    // 4. Save everything to an HDF5 file
     dump_to_pkl(x_train, y_t_train, "train");
     dump_to_pkl(x_test, y_t_test, "test");
 
     println!("Data processing and saving completed.");
-
 }
 
 /// Load data file into a `String`.
@@ -175,14 +175,21 @@ fn dump_to_pkl(x: Vec<Vec<f32>>, y_t: Vec<i32>, prefix: &str) {
 }
 
 /// Split data into training and testing sets.
-fn split_data(x: Vec<Vec<f32>>, y_t: Vec<i32>) -> (Vec<Vec<f32>>, Vec<i32>, Vec<Vec<f32>>, Vec<i32>) {
-    let num_records = x.len();
-    let num_train = (num_records as f32 * 0.8) as usize;
+use rand::seq::SliceRandom;
+use rand::thread_rng;
 
-    let x_train = x.iter().take(num_train).cloned().collect();
-    let y_t_train = y_t.iter().take(num_train).cloned().collect();
-    let x_test = x.iter().skip(num_train).cloned().collect();
-    let y_t_test = y_t.iter().skip(num_train).cloned().collect();
+fn split_data(x: Vec<Vec<f32>>, y_t: Vec<i32>) -> (Vec<Vec<f32>>, Vec<i32>, Vec<Vec<f32>>, Vec<i32>) {
+    let mut rng = thread_rng();
+    let mut combined: Vec<(Vec<f32>, i32)> = x.into_iter().zip(y_t.into_iter()).collect();
+    combined.shuffle(&mut rng);
+
+    let num_records = combined.len();
+    let num_train = (num_records as f32 * 0.8).round() as usize;
+
+    let (train_data, test_data): (Vec<_>, Vec<_>) = combined.into_iter().enumerate().partition(|&(i, _)| i >= num_train);
+
+    let (x_train, y_t_train): (Vec<_>, Vec<_>) = train_data.into_iter().map(|(_, data)| data).unzip();
+    let (x_test, y_t_test): (Vec<_>, Vec<_>) = test_data.into_iter().map(|(_, data)| data).unzip();
 
     (x_train, y_t_train, x_test, y_t_test)
 }

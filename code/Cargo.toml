@@ -8,3 +8,4 @@ burn = { version = "0.16", features = ['train', 'autodiff', 'wgpu'] }
 serde = "1.0"
 serde-pickle = "1.2.0"
 cli-table = "0.4"
+rand = "0.8.5"

@@ -3574,6 +3574,7 @@ version = "0.1.0"
 dependencies = [
  "burn",
  "cli-table",
+ "rand",
  "serde",
  "serde-pickle",
 ]
