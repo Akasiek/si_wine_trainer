@@ -3,10 +3,11 @@ use burn::data::dataloader::batcher::Batcher;
 use burn::module::Module;
 use burn::prelude::Backend;
 use burn::record::{CompactRecorder, Recorder};
+use crate::batcher::WineBatcher;
 use crate::training::TrainingConfig;
-use crate::wine::{Wine, WineBatcher};
+use crate::dataset::WineItem;
 
-pub fn infer<B: Backend>(artifact_dir: &str, device: B::Device, item: Wine) {
+pub fn infer<B: Backend>(artifact_dir: &str, device: B::Device, item: WineItem) {
     let config = TrainingConfig::load(format!("{artifact_dir}/config.json"))
         .expect("Config should exist for the model");
     let record = CompactRecorder::new()

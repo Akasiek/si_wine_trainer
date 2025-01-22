@@ -1,3 +1,4 @@
+use crate::batcher::WineBatch;
 use burn::config::Config;
 use burn::module::Module;
 use burn::nn::{Dropout, DropoutConfig, Linear, LinearConfig, Relu};
