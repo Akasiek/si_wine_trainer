@@ -1,5 +1,6 @@
-use crate::model::WineModelConfig;
+use crate::batcher::WineBatcher;
 use crate::dataset::WineDataset;
+use crate::model::WineModelConfig;
 use burn::config::Config;
 use burn::data::dataloader::DataLoaderBuilder;
 use burn::module::Module;
@@ -7,22 +8,21 @@ use burn::optim::AdamConfig;
 use burn::record::CompactRecorder;
 use burn::tensor::backend::AutodiffBackend;
 use burn::train::metric::{AccuracyMetric, LossMetric};
-use burn::train::{LearnerBuilder};
-use crate::batcher::WineBatcher;
+use burn::train::LearnerBuilder;
 
 #[derive(Config)]
 pub struct TrainingConfig {
     pub model: WineModelConfig,
     pub optimizer: AdamConfig,
-    #[config(default = 300)]
+    #[config(default = 1000)]
     pub num_epochs: usize,
-    #[config(default = 16)]
+    #[config(default = 256)]
     pub batch_size: usize,
-    #[config(default = 8)]
+    #[config(default = 1)]
     pub num_workers: usize,
     #[config(default = 42)]
     pub seed: u64,
-    #[config(default = 1.0e-5)]
+    #[config(default = 1.0e-4)]
     pub learning_rate: f64,
 }
 

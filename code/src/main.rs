@@ -1,12 +1,12 @@
+use burn::data::dataset::Dataset;
 use burn::{
     backend::{Autodiff, Wgpu},
     optim::AdamConfig,
 };
-use burn::data::dataset::Dataset;
+use si_project::dataset::WineDataset;
 use si_project::inference::infer;
 use si_project::model::WineModelConfig;
 use si_project::training::{train, TrainingConfig};
-use si_project::dataset::WineDataset;
 
 fn main() {
     type MyBackend = Wgpu<f32, i32>;

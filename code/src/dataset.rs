@@ -50,7 +50,19 @@ pub struct WineItem {
 }
 
 pub struct WineDataset {
-    dataset: InMemDataset<WineItem>,
+    pub(crate) dataset: InMemDataset<WineItem>,
+}
+
+impl WineDataset {
+    pub fn subset(&self, indices: &[usize]) -> Self {
+        let data: Vec<WineItem> = indices
+            .iter()
+            .map(|&i| self.dataset.get(i).unwrap().clone())
+            .collect();
+        Self {
+            dataset: InMemDataset::new(data),
+        }
+    }
 }
 
 impl WineDataset {
@@ -58,10 +70,12 @@ impl WineDataset {
         let x_file = File::open(format!("./data/x_{}.pkl", split))?;
         let y_file = File::open(format!("./data/y_t_{}.pkl", split))?;
 
-        let x_map: BTreeMap<String, Vec<Vec<f32>>> = serde_pickle::from_reader(x_file, Default::default())
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-        let y_map: BTreeMap<String, Vec<i32>> = serde_pickle::from_reader(y_file, Default::default())
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        let x_map: BTreeMap<String, Vec<Vec<f32>>> =
+            serde_pickle::from_reader(x_file, Default::default())
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        let y_map: BTreeMap<String, Vec<i32>> =
+            serde_pickle::from_reader(y_file, Default::default())
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
         let mut data = Vec::new();
 
