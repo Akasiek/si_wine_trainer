@@ -17,6 +17,7 @@
 #set page(numbering: "1", margin: (x: 2.5cm, y: 2.5cm))
 #set par(justify: true, leading: 0.8em, linebreaks: "optimized", first-line-indent: 1em)
 #set block(spacing: 1.45em, above: 1.3em, below: 1.3em)
+#show figure: set block(breakable: true)
 // Set font and color for inline code
 #show raw: set text(font: "JetBrains Mono", fill: rgb(60, 163, 88, 255))
 // Change color of figure's captions
@@ -265,6 +266,9 @@ Pierwszym krokiem w przygotowaniu danych jest ich czyszczenie, czyli usunięcie 
 czy duplikatów. W przypadku zbioru danych, który został wykorzystany w tym projekcie, nie było potrzeby usuwania
 żadnych próbek. Każdy atrybut może potencjalnie wpłynąć na klasyfikację wina, dlatego nie ma potrzeby eliminacji.
 
+Jedynym ważnym aspektem była zmiana etykiet klas, aby numeracja zaczynała się od $0$, co jest wymagane przez bibliotekę
+`Burn`. Wcześniej etykiety klas były oznaczone jako $1$, $2$ i $3$, co zostało zmienione na $0$, $1$ i $2$.
+
 == Normalizacja danych
 
 \
@@ -310,6 +314,9 @@ W moim przypadku od $-1$ do $1$.
     caption: "Normalizacja danych",
   )
 }
+
+#pagebreak()
+
 == Podział na zbiory treningowe i testowe
 
 \
@@ -323,9 +330,8 @@ Podział danych na zbiory treningowe i testowe pozwala na ocenę skuteczności m
 danych. W ten sposób można sprawdzić, jak dobrze model generalizuje swoje umiejętności na nowych danych, a nie tylko
 na tych, które były obecne w zestawie treningowym.
 
-W tym celu napisałem funkcję `split_data`, która dokonuje losowego podziału danych na zbiory treningowe i testowe. Po
-podziale dane są dodatkowo sortowane według klasy, aby zapewnić równomierne rozłożenie próbek w zbiorach treningowym
-i testowym.
+W tym celu napisałem funkcję `split_data`, która dokonuje losowego podziału danych na zbiory treningowe i testowe.
+Każda klasa jest losowana osobna, aby zachować równowagę między klasami w obu zbiorach.
 
 #{
   show raw: set text(size: 0.9em)
@@ -333,29 +339,34 @@ i testowym.
     [```rust
     fn split_data(
       x: Vec<Vec<f32>>,
-      y_t: Vec<i32>
+      y_t: Vec<i32>,
     ) -> (Vec<Vec<f32>>, Vec<i32>, Vec<Vec<f32>>, Vec<i32>) {
-      let mut rng = thread_rng();
-      let mut combined: Vec<(Vec<f32>, i32)> = x.into_iter().zip(y_t.into_iter()).collect();
-      combined.shuffle(&mut rng);
+      let class_counts = get_class_count(&y_t);
+      let mut x_train = Vec::new();
+      let mut y_t_train = Vec::new();
+      let mut x_test = Vec::new();
+      let mut y_t_test = Vec::new();
 
-      let num_records = combined.len();
-      let num_train = (num_records as f32 * 0.8) as usize;
+      let wines = x.iter().zip(y_t.iter()).collect::<Vec<_>>();
 
-      // Split data into training and testing sets
-      let (train_data, test_data): (Vec<_>, Vec<_>) = combined
-        .into_iter()
-        .enumerate()
-        .partition(|&(i, _)| i >= num_train);
+      for (class, count) in class_counts.iter() {
+        let num_train = (count * 85) / 100;
 
-      // Sort by y_t class and unzip to separate x and y_t
-      let mut train_sorted: Vec<_> = train_data.into_iter().map(|(_, data)| data).collect();
-      train_sorted.sort_by_key(|&(_, y)| y);
-      let (x_train, y_t_train): (Vec<_>, Vec<_>) = train_sorted.into_iter().unzip();
+        let mut class_wines = wines.iter().filter(|(_, &y)| y == *class).collect::<Vec<_>>();
+        class_wines.shuffle(&mut thread_rng());
 
-      let mut test_sorted: Vec<_> = test_data.into_iter().map(|(_, data)| data).collect();
-      test_sorted.sort_by_key(|&(_, y)| y);
-      let (x_test, y_t_test): (Vec<_>, Vec<_>) = test_sorted.into_iter().unzip();
+        let (test, train) = class_wines.split_at(num_train as usize);
+
+        for (x, y) in train.into_iter() {
+          x_train.push(x.clone().clone());
+          y_t_train.push(y.clone().clone());
+        }
+
+        for (x, y) in test.iter() {
+          x_test.push(x.clone().clone());
+          y_t_test.push(y.clone().clone());
+        }
+      }
 
       (x_train, y_t_train, x_test, y_t_test)
     }
@@ -434,9 +445,14 @@ które są odpowiedzialne za dostarczanie danych do modelu w postaci wsadów (_b
 _Dataset_ (plik #link(<dataset>)[`dataset.rs`], w części skryptowej) jako dane wejściowe i dzieli je na wsady o
 określonym rozmiarze.
 
-W moim przypadku, struktura `WineDataset` przechowuje dane treningowe i testowe, które zostały wcześniej przygotowane
-i zapisane do plików PKL. Następnie, `WineBatcher` dzieli te dane na wsady `WineBatch`, które są przekazywane do modelu
-podczas treningu.
+W moim przypadku, struktura `WineDataset` przechowuje w pamięci systemowej dane treningowe i testowe, które zostały
+wcześniej przygotowane i zapisane do plików PKL. Następnie, `WineBatcher` dzieli te dane na wsady `WineBatch`, które są
+przekazywane do modelu podczas treningu.
+
+#figure(
+  image("./images/data-flow-graph.png"),
+  caption: "Schemat przepływu danych w procesie trenowania modelu",
+)
 
 === Implementacja tensorów
 
@@ -497,17 +513,234 @@ bezpośrednio do modelu.
   )
 }
 
+#pagebreak()
+
+== Definicja modelu
+
+\
+
+Model sieci neuronowej jest zdefiniowany w strukturze `WineModel` (plik #link(<model>)[`model.rs`] w części skryptowej).
+Składa się z trzech warstw sieci neuronowej: jednej warstwy wejściowej, jednej warstwy ukrytej i jednej warstwy
+wyjściowej.
+
+Warstwa wejściowa ma 13 neurony, które odpowiadają 13 cechom chemicznym wina. Warstwa ukryta ma liczbę neuronów, która
+jest określona przez hiperparametr `hidden_size`. Na początku eksperymentów przyjąłem wartość `hidden_size = 64`.
+Warstwa wyjściowa ma 3 neurony, które odpowiadają trzem klasom winogron.
+
+Model wykorzystuje funkcję aktywacji *ReLU* (_Rectified Linear Unit_) w warstwie ukrytej i wejściowej oraz funkcję
+regulacji *Dropout* w celu zapobiegania przeuczeniu. Funkcja *Dropout* losowo wyłącza część neuronów w warstwie ukrytej
+podczas treningu, co pomaga w regularyzacji modelu i poprawia jego zdolność do generalizacji.
+
+#{
+  show raw: set text(size: 0.9em)
+  figure(
+    [```rust
+    impl<B: Backend> WineModel<B> {
+      pub fn forward(&self, x: Tensor<B, 2>) -> Tensor<B, 2> {
+        let x = self.input_layer.forward(x);
+        let x = self.activation.forward(x);
+        let x = self.dropout.forward(x);
+
+        let x = self.hidden_layer.forward(x);
+        let x = self.activation.forward(x);
+        let x = self.dropout.forward(x);
+
+        self.output_layer.forward(x)
+      }
+    }
+
+    ```],
+    caption: [Implementacji funkcji `forward`, która przekazuje dane przez warstwy sieci neuronowej],
+  )
+}
+
+#pagebreak()
+
+== Trenowanie modelu
+
+\
+
+Trenowanie modelu polega na iteracyjnym dostosowywaniu wag i biasów sieci neuronowej w celu minimalizacji funkcji błędu.
+W tym projekcie wykorzystałem algorytm optymalizacji *Adam*, który jest jednym z najczęściej stosowanych algorytmów
+optymalizacji w uczeniu maszynowym. *Adam* łączy zalety algorytmów *RMSprop* i *Adagrad*, co pozwala na skuteczne
+aktualizowanie wag sieci neuronowej.
+
+W trakcie trenowania modelu obliczana jest wartość funkcji straty (_loss_), która mierzy, jak bardzo przewidywania
+modelu różnią się od rzeczywistych etykiet w danych. Następnie, wartość straty jest wykorzystywana do aktualizacji wag
+sieci neuronowej w procesie optymalizacji.
+
+`Burn` dostarcza wiele wbudowanych metryk, które można wykorzystać do oceny skuteczności modelu podczas treningu. W moim
+przypadku, wykorzystałem metryki *dokładność* (_accuracy_) i *strata* (_loss_), które są kluczowe w problemach klasyfikacji.
+
+`Burn` również dostarcza bardzo przejrzysty interfejs pokazujący przebieg treningu, w tym wartości metryk, czas treningu,
+aktualizacje wag oraz inne informacje, które są przydatne podczas analizy wyników.
+
+#{
+  show raw: set text(size: 0.9em)
+  figure(
+    [```rust
+    pub fn train<B: AutodiffBackend>(artifact_dir: &str, config: TrainingConfig, device: B::Device) {
+      create_artifact_dir(artifact_dir);
+      config
+        .save(format!("{artifact_dir}/config.json"))
+        .expect("Config should be saved successfully");
+
+      B::seed(config.seed);
+
+      let train_batch = WineBatcher::<B>::new(device.clone());
+      let test_batch = WineBatcher::<B::InnerBackend>::new(device.clone());
+
+      let dataloader_train = DataLoaderBuilder::new(train_batch)
+        .batch_size(config.batch_size)
+        .shuffle(config.seed)
+        .num_workers(config.num_workers)
+        .build(WineDataset::train());
+
+      let dataloader_test = DataLoaderBuilder::new(test_batch)
+        .batch_size(config.batch_size)
+        .shuffle(config.seed)
+        .num_workers(config.num_workers)
+        .build(WineDataset::test());
+
+      let learner = LearnerBuilder::new(artifact_dir)
+        .metric_train_numeric(AccuracyMetric::new())
+        .metric_valid_numeric(AccuracyMetric::new())
+        .metric_train_numeric(LossMetric::new())
+        .metric_valid_numeric(LossMetric::new())
+        .with_file_checkpointer(CompactRecorder::new())
+        .devices(vec![device.clone()])
+        .num_epochs(config.num_epochs)
+        .summary()
+        .build(
+            config.model.init::<B>(&device),
+            config.optimizer.init(),
+            config.learning_rate,
+        );
+
+      let model_trained = learner.fit(dataloader_train, dataloader_test);
+
+      model_trained
+          .save_file(format!("{artifact_dir}/model"), &CompactRecorder::new())
+          .expect("Trained model should be saved successfully");
+    }
+    ```],
+    caption: [Funkcji `train`, która trenuje model sieci neuronowej],
+  )
+}
+
+#figure(
+  image("./images/acc_4000_256_64_-04.jpg"),
+  caption: [Interfejs `Burn` podczas treningu modelu],
+)
+
+=== Wyniki trenowania
+
+\
+
+Po zakończeniu trenowania modelu, można ocenić jego skuteczność na zbiorze testowym. Początkowo wykorzystałem
+hiperparametry `hidden_size = 64`, `num_epochs = 2000`, `batch_size = 128` i `learning_rate = 1.0e-3`. Te parametry
+pozwoliły mi uzyskać dokładność na poziomie około $100%$ na zbiorze treningowym, a $96%$ na zbiorze testowym. Wyniki te
+były obiecujące, ale postanowiłem przeprowadzić serię eksperymentów, aby znaleźć optymalne wartości hiperparametrów.
+
+#figure(
+  image("./images/acc_2000_128_64_-03.jpg"),
+  caption: [Wykres dokładności modelu dla hiperparametrów `hidden_size = 64`, `num_epochs = 2000`, `batch_size = 128` i `learning_rate = 1e-3`],
+)
+
+#figure(
+  image("./images/loss_2000_128_64_-03.jpg"),
+  caption: [Wykres straty modelu dla hiperparametrów `hidden_size = 64`, `num_epochs = 2000`, `batch_size = 128` i `learning_rate = 1e-3`],
+)
+
+#figure(
+  image("./images/table_2000_128_64_-03.jpg", width: 80%),
+  caption: [Tabela wyników modelu dla hiperparametrów `hidden_size = 64`, `num_epochs = 2000`, `batch_size = 128` i `learning_rate = 1e-3`],
+)
 
 
 
+= Eksperymenty
+
+\
+
+W celu poprawy skuteczności modelu, przeprowadziłem serię eksperymentów, w których zmieniałem hiperparametry modelu i
+nie tylko. Zmiany te miały na celu znalezienie optymalnych wartości, które pozwolą na uzyskanie jak najlepszych wyników.
+
+== Zmiana hiperparametrów
+
+\
+
+Pierwszym krokiem w eksperymentach było zmienienie hiperparametrów modelu, takich jak `hidden_size`, `num_epochs`,
+`batch_size` i `learning_rate`. W trakcie eksperymentów testowałem różne wartości tych parametrów, aby znaleźć
+optymalne wartości, które pozwolą na uzyskanie jak najlepszych wyników.
+
+Odkryłem, że najlepszymi wartościami hiperparametrów są `hidden_size = 64`, `num_epochs = 4000`, `batch_size = 256` i
+`learning_rate = 1.0e-4`. Te wartości pozwoliły mi uzyskać dokładność na poziomie około $100%$ na zbiorze treningowym,
+a $96.6%$ na zbiorze testowym.
+
+#figure(
+  image("./images/acc_4000_256_64_-04.jpg"),
+  caption: [Wykres dokładności modelu dla hiperparametrów `hidden_size = 64`, `num_epochs = 4000`, `batch_size = 256` i `learning_rate = 1e-4`],
+)
+
+#figure(
+  image("./images/loss_4000_256_64_-04.jpg"),
+  caption: [Wykres straty modelu dla hiperparametrów `hidden_size = 64`, `num_epochs = 4000`, `batch_size = 256` i `learning_rate = 1e-4`],
+)
+
+#figure(
+  image("./images/table_4000_256_64_-04.jpg", width: 80%),
+  caption: [Tabela wyników modelu dla hiperparametrów `hidden_size = 64`, `num_epochs = 4000`, `batch_size = 256` i `learning_rate = 1e-4`],
+)
 
 
+== Zmiana architektury modelu
+
+\
+
+Kolejnym krokiem w eksperymentach było zmienienie architektury modelu, tak aby sprawdzić, czy zmiana liczby neuronów w
+warstwie ukrytej wpłynie na skuteczność modelu. W trakcie eksperymentów testowałem różne wartości parametru `hidden_size`,
+aby znaleźć optymalną wartość, która pozwoli na uzyskanie jak najlepszych wyników.
+
+Dodanie kolejnego neuronu w warstwie ukrytej nie zmieniło znacząco wyników modelu. Ostatecznie, najlepszymi wartościami
+hiperparametrów okazały się `hidden_size = 64`, `num_epochs = 4000`, `batch_size = 256` i `learning_rate = 1.0e-4`.
+
+\
+
+Następnie spróbowałem usunąć warstwę ukrytą z modelu, aby sprawdzić, czy prostsza architektura sieci neuronowej
+będzie skuteczniejsza. Okazało się, że model bez warstwy ukrytej uzyskał gorsze wyniki niż model z warstwą ukrytą, ale
+różnica nie była znacząca. Ostatecznie, zdecydowałem się na model z warstwą ukrytą, ponieważ uzyskał najlepsze wyniki.
+
+= Podsumowanie
+
+\
+
+W niniejszej pracy omówiono proces tworzenia i testowania modelu klasyfikacyjnego przy użyciu danych chemicznych
+dotyczących różnych rodzajów winogron. Dzięki zastosowaniu nowoczesnych technik sztucznej inteligencji, takich jak
+głębokie uczenie, możliwe było zbudowanie modelu, który skutecznie klasyfikuje wina na podstawie ich atrybutów
+chemicznych. W ramach przygotowania danych do nauki omówiono m.in. techniki normalizacji, które miały na celu
+zapewnienie, że cechy wejściowe mają jednolitą skalę i nie wpływają negatywnie na proces uczenia modelu. Testowanie
+modelu uwzględniało m.in. miarę loss oraz dokładność, które pozwoliły na ocenę skuteczności modelu.
+
+W pracy uwzględniono także kluczowe aspekty technologiczne związane z używaną biblioteką - `Burn`. Przygotowanie danych
+i ich odpowiednia obróbka są niezbędne, by model mógł działać skutecznie, a wyniki testów wskazują na pozytywne efekty
+zastosowanych rozwiązań w kontekście klasyfikacji win. Dzięki tym technologiom, możliwe jest uzyskanie dokładnych
+prognoz dotyczących typu wina, co może mieć zastosowanie w różnych dziedzinach, od przemysłu winiarskiego po
+zastosowania badawcze w naukach chemicznych.
+
+== Wnioski
+
++ *Efektywność sztucznej inteligencji w klasyfikacji danych chemicznych* – Zastosowanie głębokiego uczenia do klasyfikacji win na podstawie ich atrybutów chemicznych okazało się skuteczne. Model uzyskał wysoką dokładność, co sugeruje, że takie podejście może być użyteczne w analizach przemysłowych oraz badaniach naukowych.
+
++ *Znaczenie przygotowania danych* – Dobrze przeprowadzone przygotowanie danych, w tym normalizacja i odpowiedni podział na zbiory treningowe oraz testowe, miało kluczowy wpływ na wydajność modelu. W szczególności normalizacja danych pozwoliła na poprawienie stabilności modelu i zapewnienie, że wszystkie cechy miały podobną wagę.
+
++ *Potencjał do zastosowań praktycznych* – Modele klasyfikacyjne oparte na głębokim uczeniu mogą mieć szerokie zastosowanie w przemyśle winiarskim, gdzie dokładne określenie rodzaju wina na podstawie jego właściwości chemicznych może pomóc w procesach produkcji, kontroli jakości i marketingu.
 
 
+#pagebreak()
 
 = Skrypt
 
-#show figure: set block(breakable: true)
 #show raw: set text(size: 0.75em)
 #figure(
   [```rust
@@ -596,7 +829,7 @@ bezpośrednio do modelu.
       x[i][11] = wine.od280_od315_of_diluted_wines;
       x[i][12] = wine.proline;
 
-      y_t[i] = wine.class;
+      y_t[i] = wine.class - 1;
     }
 
     (x, y_t)
@@ -644,7 +877,7 @@ bezpośrednio do modelu.
       let mut row_data = Vec::new();
       row_data.push(y_t[i].to_string());
       for &value in row.iter() {
-          row_data.push(value.to_string());
+        row_data.push(value.to_string());
       }
       table.push(row_data);
     }
@@ -692,33 +925,48 @@ bezpośrednio do modelu.
   use rand::thread_rng;
 
   fn split_data(
-      x: Vec<Vec<f32>>,
-      y_t: Vec<i32>,
+    x: Vec<Vec<f32>>,
+    y_t: Vec<i32>,
   ) -> (Vec<Vec<f32>>, Vec<i32>, Vec<Vec<f32>>, Vec<i32>) {
-    let mut rng = thread_rng();
-    let mut combined: Vec<(Vec<f32>, i32)> = x.into_iter().zip(y_t.into_iter()).collect();
-    combined.shuffle(&mut rng);
+    let class_counts = get_class_count(&y_t);
+    let mut x_train = Vec::new();
+    let mut y_t_train = Vec::new();
+    let mut x_test = Vec::new();
+    let mut y_t_test = Vec::new();
 
-    let num_records = combined.len();
-    let num_train = (num_records as f32 * 0.7) as usize;
+    let wines = x.iter().zip(y_t.iter()).collect::<Vec<_>>();
 
-    // Split data into training and testing sets
-    let (train_data, test_data): (Vec<_>, Vec<_>) = combined
-      .into_iter()
-      .enumerate()
-      .partition(|&(i, _)| i >= num_train);
+    for (class, count) in class_counts.iter() {
+      let num_train = (count * 85) / 100;
 
-    // Sort by y_t class
-    let mut train_sorted: Vec<_> = train_data.into_iter().map(|(_, data)| data).collect();
-    train_sorted.sort_by_key(|&(_, y)| y);
-    let (x_train, y_t_train): (Vec<_>, Vec<_>) = train_sorted.into_iter().unzip();
+      let mut class_wines = wines.iter().filter(|(_, &y)| y == *class).collect::<Vec<_>>();
+      class_wines.shuffle(&mut thread_rng());
 
-    let mut test_sorted: Vec<_> = test_data.into_iter().map(|(_, data)| data).collect();
-    test_sorted.sort_by_key(|&(_, y)| y);
-    let (x_test, y_t_test): (Vec<_>, Vec<_>) = test_sorted.into_iter().unzip();
+      let (test, train) = class_wines.split_at(num_train as usize);
+
+      for (x, y) in train.into_iter() {
+        x_train.push(x.clone().clone());
+        y_t_train.push(y.clone().clone());
+      }
+
+      for (x, y) in test.iter() {
+        x_test.push(x.clone().clone());
+        y_t_test.push(y.clone().clone());
+      }
+    }
 
     (x_train, y_t_train, x_test, y_t_test)
   }
+
+  fn get_class_count(y_t: &Vec<i32>) -> BTreeMap<i32, i32> {
+    let mut class_counts = BTreeMap::new();
+    for &class in y_t.iter() {
+      *class_counts.entry(class).or_insert(0) += 1;
+    }
+
+    class_counts
+  }
+
   ```],
   caption: `prepare_data.rs`,
 )<prepare_data>
@@ -918,3 +1166,203 @@ bezpośrednio do modelu.
   ```],
   caption: `batcher.rs`
 )<batcher>
+
+#figure(
+  [```rust
+  use crate::batcher::WineBatch;
+  use burn::config::Config;
+  use burn::module::Module;
+  use burn::nn::loss::CrossEntropyLossConfig;
+  use burn::nn::{Dropout, DropoutConfig, Linear, LinearConfig, Relu};
+  use burn::prelude::{Backend, Tensor};
+  use burn::tensor::backend::AutodiffBackend;
+  use burn::tensor::Int;
+  use burn::train::{ClassificationOutput, TrainOutput, TrainStep, ValidStep};
+
+  #[derive(Module, Debug)]
+  pub struct WineModel<B: Backend> {
+    input_layer: Linear<B>,
+    hidden_layer: Linear<B>,
+    output_layer: Linear<B>,
+    activation: Relu,
+    dropout: Dropout,
+  }
+
+  impl<B: Backend> WineModel<B> {
+    pub fn forward(&self, x: Tensor<B, 2>) -> Tensor<B, 2> {
+      let x = self.input_layer.forward(x);
+      let x = self.activation.forward(x);
+      let x = self.dropout.forward(x);
+
+      self.output_layer.forward(x)
+    }
+  }
+
+  impl<B: Backend> WineModel<B> {
+    pub fn forward_classification(
+      &self,
+      x: Tensor<B, 2>,
+      y: Tensor<B, 1, Int>,
+    ) -> ClassificationOutput<B> {
+      let output = self.forward(x);
+      let loss = CrossEntropyLossConfig::new()
+        .init(&output.device())
+        .forward(output.clone(), y.clone());
+
+      ClassificationOutput::new(loss, output, y)
+    }
+  }
+
+  impl<B: AutodiffBackend> TrainStep<WineBatch<B>, ClassificationOutput<B>> for WineModel<B> {
+    fn step(&self, batch: WineBatch<B>) -> TrainOutput<ClassificationOutput<B>> {
+      let item = self.forward_classification(batch.x, batch.y);
+
+      TrainOutput::new(self, item.loss.backward(), item)
+    }
+  }
+
+  impl<B: Backend> ValidStep<WineBatch<B>, ClassificationOutput<B>> for WineModel<B> {
+    fn step(&self, batch: WineBatch<B>) -> ClassificationOutput<B> {
+      self.forward_classification(batch.x, batch.y)
+    }
+  }
+
+  #[derive(Config, Debug)]
+  pub struct WineModelConfig {
+    num_classes: usize,
+    hidden_size: usize,
+    #[config(default = "0.5")]
+    dropout: f64,
+  }
+
+  impl WineModelConfig {
+    pub fn init<B: Backend>(&self, device: &B::Device) -> WineModel<B> {
+      WineModel {
+        input_layer: LinearConfig::new(13, self.hidden_size).init(device),
+        hidden_layer: LinearConfig::new(self.hidden_size, self.hidden_size).init(device),
+        output_layer: LinearConfig::new(self.hidden_size, self.num_classes).init(device),
+        activation: Relu::new(),
+        dropout: DropoutConfig::new(self.dropout).init(),
+      }
+    }
+  }
+
+  ```],
+  caption: `model.rs`
+)<model>
+
+#figure(
+  [```rust
+  use crate::batcher::WineBatcher;
+  use crate::dataset::WineDataset;
+  use crate::model::WineModelConfig;
+  use burn::config::Config;
+  use burn::data::dataloader::DataLoaderBuilder;
+  use burn::module::Module;
+  use burn::optim::AdamConfig;
+  use burn::record::CompactRecorder;
+  use burn::tensor::backend::AutodiffBackend;
+  use burn::train::metric::{AccuracyMetric, LossMetric};
+  use burn::train::LearnerBuilder;
+
+  #[derive(Config)]
+  pub struct TrainingConfig {
+    pub model: WineModelConfig,
+    pub optimizer: AdamConfig,
+    #[config(default = 4000)]
+    pub num_epochs: usize,
+    #[config(default = 256)]
+    pub batch_size: usize,
+    #[config(default = 1)]
+    pub num_workers: usize,
+    #[config(default = 42)]
+    pub seed: u64,
+    #[config(default = 1e-4)]
+    pub learning_rate: f64,
+  }
+
+  pub fn train<B: AutodiffBackend>(artifact_dir: &str, config: TrainingConfig, device: B::Device) {
+    create_artifact_dir(artifact_dir);
+    config
+      .save(format!("{artifact_dir}/config.json"))
+      .expect("Config should be saved successfully");
+
+    B::seed(config.seed);
+
+    let train_batch = WineBatcher::<B>::new(device.clone());
+    let test_batch = WineBatcher::<B::InnerBackend>::new(device.clone());
+
+    let dataloader_train = DataLoaderBuilder::new(train_batch)
+      .batch_size(config.batch_size)
+      .shuffle(config.seed)
+      .num_workers(config.num_workers)
+      .build(WineDataset::train());
+
+    let dataloader_test = DataLoaderBuilder::new(test_batch)
+      .batch_size(config.batch_size)
+      .shuffle(config.seed)
+      .num_workers(config.num_workers)
+      .build(WineDataset::test());
+
+    let learner = LearnerBuilder::new(artifact_dir)
+      .metric_train_numeric(AccuracyMetric::new())
+      .metric_valid_numeric(AccuracyMetric::new())
+      .metric_train_numeric(LossMetric::new())
+      .metric_valid_numeric(LossMetric::new())
+      .with_file_checkpointer(CompactRecorder::new())
+      .devices(vec![device.clone()])
+      .num_epochs(config.num_epochs)
+      .summary()
+      .build(
+        config.model.init::<B>(&device),
+        config.optimizer.init(),
+        config.learning_rate,
+      );
+
+    let model_trained = learner.fit(dataloader_train, dataloader_test);
+
+    model_trained
+      .save_file(format!("{artifact_dir}/model"), &CompactRecorder::new())
+      .expect("Trained model should be saved successfully");
+  }
+
+  fn create_artifact_dir(artifact_dir: &str) {
+    // Remove existing artifacts before to get an accurate learner summary
+    std::fs::remove_dir_all(artifact_dir).ok();
+    std::fs::create_dir_all(artifact_dir).ok();
+  }
+  ```],
+  caption: `training.rs`
+)<training>
+
+#figure(
+  [```rust
+  use burn::backend::cuda_jit::CudaDevice;
+  use burn::backend::{CudaJit};
+  use burn::data::dataset::Dataset;
+  use burn::{
+      backend::{Autodiff, Wgpu},
+      optim::AdamConfig,
+  };
+  use si_project::dataset::WineDataset;
+  use si_project::model::WineModelConfig;
+  use si_project::training::{train, TrainingConfig};
+
+  fn main() {
+      // type MyBackend = Wgpu<f32, i32>;
+      type MyBackend = CudaJit<f32, i32>;
+      type MyAutodiffBackend = Autodiff<MyBackend>;
+
+      // let device = burn::backend::wgpu::WgpuDevice::default();
+      let device = CudaDevice::default();
+
+      let artifact_dir = "./artifacts";
+      train::<MyAutodiffBackend>(
+          artifact_dir,
+          TrainingConfig::new(WineModelConfig::new(3, 64), AdamConfig::new()),
+          device.clone(),
+      );
+  }
+  ```],
+  caption: `main.rs`
+)<main>
