@@ -63,9 +63,7 @@ impl WineDataset {
             dataset: InMemDataset::new(data),
         }
     }
-}
 
-impl WineDataset {
     pub fn from_pkl(split: &str) -> Result<Self, io::Error> {
         let x_file = File::open(format!("./data/x_{}.pkl", split))?;
         let y_file = File::open(format!("./data/y_t_{}.pkl", split))?;
