@@ -25,7 +25,7 @@ fn main() {
     println!("\n\n\nData train:");
     table_data(&x_test, &y_t_test);
 
-    // 4. Save everything to an HDF5 file
+    // 4. Save everything to an PKL file
     dump_to_pkl(x_train, y_t_train, "train");
     dump_to_pkl(x_test, y_t_test, "test");
 
