@@ -17,10 +17,11 @@ fn main() {
 
     // let device = burn::backend::wgpu::WgpuDevice::default();
     let device = CudaDevice::default();
+
     let artifact_dir = "./artifacts";
     train::<MyAutodiffBackend>(
         artifact_dir,
-        TrainingConfig::new(WineModelConfig::new(3, 111), AdamConfig::new()),
+        TrainingConfig::new(WineModelConfig::new(3, 32), AdamConfig::new()),
         device.clone(),
     );
 

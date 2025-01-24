@@ -2,7 +2,7 @@ use crate::batcher::WineBatch;
 use burn::config::Config;
 use burn::module::Module;
 use burn::nn::loss::CrossEntropyLossConfig;
-use burn::nn::{Dropout, DropoutConfig, LeakyRelu, LeakyReluConfig, Linear, LinearConfig, Relu};
+use burn::nn::{Dropout, DropoutConfig, Linear, LinearConfig, Relu};
 use burn::prelude::{Backend, Tensor};
 use burn::tensor::backend::AutodiffBackend;
 use burn::tensor::Int;
@@ -14,18 +14,13 @@ pub struct WineModel<B: Backend> {
     hidden_layer: Linear<B>,
     output_layer: Linear<B>,
     activation: Relu,
-    activation_2: LeakyRelu,
     dropout: Dropout,
 }
 
 impl<B: Backend> WineModel<B> {
     pub fn forward(&self, x: Tensor<B, 2>) -> Tensor<B, 2> {
         let x = self.input_layer.forward(x);
-        let x = self.activation_2.forward(x);
-        let x = self.dropout.forward(x);
-
-        let x = self.hidden_layer.forward(x);
-        let x = self.activation_2.forward(x);
+        let x = self.activation.forward(x);
         let x = self.dropout.forward(x);
 
         self.output_layer.forward(x)
@@ -73,10 +68,9 @@ impl WineModelConfig {
     pub fn init<B: Backend>(&self, device: &B::Device) -> WineModel<B> {
         WineModel {
             input_layer: LinearConfig::new(13, self.hidden_size).init(device),
-            hidden_layer: LinearConfig::new(self.hidden_size, self.hidden_size / 2).init(device),
-            output_layer: LinearConfig::new(self.hidden_size / 2, self.num_classes).init(device),
+            hidden_layer: LinearConfig::new(self.hidden_size, self.hidden_size).init(device),
+            output_layer: LinearConfig::new(self.hidden_size, self.num_classes).init(device),
             activation: Relu::new(),
-            activation_2: LeakyReluConfig::new().with_negative_slope(0.01).init(),
             dropout: DropoutConfig::new(self.dropout).init(),
         }
     }

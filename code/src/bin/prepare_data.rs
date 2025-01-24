@@ -83,7 +83,7 @@ fn extract_x_and_y_t(wines: &[WineItem]) -> (Vec<Vec<f32>>, Vec<i32>) {
         x[i][11] = wine.od280_od315_of_diluted_wines;
         x[i][12] = wine.proline;
 
-        y_t[i] = wine.class;
+        y_t[i] = wine.class - 1;
     }
 
     (x, y_t)
@@ -182,27 +182,41 @@ fn split_data(
     x: Vec<Vec<f32>>,
     y_t: Vec<i32>,
 ) -> (Vec<Vec<f32>>, Vec<i32>, Vec<Vec<f32>>, Vec<i32>) {
-    let mut rng = thread_rng();
-    let mut combined: Vec<(Vec<f32>, i32)> = x.into_iter().zip(y_t.into_iter()).collect();
-    combined.shuffle(&mut rng);
+    let class_counts = get_class_count(&y_t);
+    let mut x_train = Vec::new();
+    let mut y_t_train = Vec::new();
+    let mut x_test = Vec::new();
+    let mut y_t_test = Vec::new();
 
-    let num_records = combined.len();
-    let num_train = (num_records as f32 * 0.7) as usize;
+    let wines = x.iter().zip(y_t.iter()).collect::<Vec<_>>();
 
-    // Split data into training and testing sets
-    let (train_data, test_data): (Vec<_>, Vec<_>) = combined
-        .into_iter()
-        .enumerate()
-        .partition(|&(i, _)| i >= num_train);
+    for (class, count) in class_counts.iter() {
+        let num_train = (count * 85) / 100;
 
-    // Sort by y_t class
-    let mut train_sorted: Vec<_> = train_data.into_iter().map(|(_, data)| data).collect();
-    train_sorted.sort_by_key(|&(_, y)| y);
-    let (x_train, y_t_train): (Vec<_>, Vec<_>) = train_sorted.into_iter().unzip();
+        let mut class_wines = wines.iter().filter(|(_, &y)| y == *class).collect::<Vec<_>>();
+        class_wines.shuffle(&mut thread_rng());
 
-    let mut test_sorted: Vec<_> = test_data.into_iter().map(|(_, data)| data).collect();
-    test_sorted.sort_by_key(|&(_, y)| y);
-    let (x_test, y_t_test): (Vec<_>, Vec<_>) = test_sorted.into_iter().unzip();
+        let (test, train) = class_wines.split_at(num_train as usize);
+
+        for (x, y) in train.into_iter() {
+            x_train.push(x.clone().clone());
+            y_t_train.push(y.clone().clone());
+        }
+
+        for (x, y) in test.iter() {
+            x_test.push(x.clone().clone());
+            y_t_test.push(y.clone().clone());
+        }
+    }
 
     (x_train, y_t_train, x_test, y_t_test)
+}
+
+fn get_class_count(y_t: &Vec<i32>) -> BTreeMap<i32, i32> {
+    let mut class_counts = BTreeMap::new();
+    for &class in y_t.iter() {
+        *class_counts.entry(class).or_insert(0) += 1;
+    }
+
+    class_counts
 }
