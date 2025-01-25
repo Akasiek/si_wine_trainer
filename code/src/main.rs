@@ -1,5 +1,5 @@
 use burn::backend::cuda_jit::CudaDevice;
-use burn::backend::{CudaJit};
+use burn::backend::CudaJit;
 use burn::data::dataset::Dataset;
 use burn::{
     backend::{Autodiff, Wgpu},
@@ -21,7 +21,7 @@ fn main() {
     let artifact_dir = "./artifacts";
     train::<MyAutodiffBackend>(
         artifact_dir,
-        TrainingConfig::new(WineModelConfig::new(3, 32), AdamConfig::new()),
+        TrainingConfig::new(WineModelConfig::new(3, 64), AdamConfig::new()),
         device.clone(),
     );
 
