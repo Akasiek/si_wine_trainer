@@ -193,19 +193,22 @@ fn split_data(
     for (class, count) in class_counts.iter() {
         let num_train = (count * 85) / 100;
 
-        let mut class_wines = wines.iter().filter(|(_, &y)| y == *class).collect::<Vec<_>>();
+        let mut class_wines = wines
+            .iter()
+            .filter(|(_, &y)| y == *class)
+            .collect::<Vec<_>>();
         class_wines.shuffle(&mut thread_rng());
 
         let (test, train) = class_wines.split_at(num_train as usize);
 
         for (x, y) in train.into_iter() {
-            x_train.push(x.clone().clone());
-            y_t_train.push(y.clone().clone());
+            x_train.push((*x).clone());
+            y_t_train.push((*y).clone());
         }
 
         for (x, y) in test.iter() {
-            x_test.push(x.clone().clone());
-            y_t_test.push(y.clone().clone());
+            x_test.push((*x).clone());
+            y_t_test.push((*y).clone());
         }
     }
 
