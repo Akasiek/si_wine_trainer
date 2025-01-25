@@ -140,17 +140,17 @@ fn table_data(x: &Vec<Vec<f32>>, y_t: &Vec<i32>) {
     let table = table.table().title(vec![
         "y_t".cell().bold(true),
         "alcohol".cell().bold(true),
-        "malic_acid".cell().bold(true),
+        "malic acid".cell().bold(true),
         "ash".cell().bold(true),
-        "alcalinity_of_ash".cell().bold(true),
+        "alcalinity\nof ash".cell().bold(true),
         "magnesium".cell().bold(true),
-        "total_phenols".cell().bold(true),
+        "total\nphenols".cell().bold(true),
         "flavanoids".cell().bold(true),
-        "nonflavanoid_phenols".cell().bold(true),
+        "nonflavanoid\nphenols".cell().bold(true),
         "proanthocyanins".cell().bold(true),
-        "color_intensity".cell().bold(true),
+        "color\nintensity".cell().bold(true),
         "hue".cell().bold(true),
-        "od280_od315_of_diluted_wines".cell().bold(true),
+        "od280 od315\nof diluted\nwines".cell().bold(true),
         "proline".cell().bold(true),
     ]);
 
