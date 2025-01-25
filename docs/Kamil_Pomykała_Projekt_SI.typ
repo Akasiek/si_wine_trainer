@@ -64,7 +64,7 @@
 
 Klasyfikacja win, polegająca na przypisaniu konkretnego trunku do właściwej odmiany winogron na podstawie jego
 parametrów chemicznych, odgrywa ważną rolę w analizie jakości oraz unikalnych cech wina. Zróżnicowanie cech win pod
-względu składu chemicznego sprawia, że klasyfikacja win jest trudnym zadaniem.
+względem składu chemicznego sprawia, że klasyfikacja win jest trudnym zadaniem.
 
 Dzięki nowoczesnym rozwiązaniom, takim jak sztuczna inteligencja i algorytmy uczenia głębokiego, możliwe jest
 zautomatyzowanie procesu klasyfikacji win. Problem ten można sprowadzić do zadania wieloklasowej klasyfikacji,
@@ -98,6 +98,7 @@ stworzona w języku `Rust`, staje się coraz bardziej popularną alternatywą do
 dzięki swojej wydajności i możliwościach języka niskopoziomowego.
 
 #pagebreak()
+
 == Cel projektu
 
 \
@@ -128,7 +129,7 @@ Używa się tutaj algorytmu optymalizacji, najczęściej *spadku gradientu* (_Gr
 modyfikację wag w taki sposób, by minimalizować błąd predykcji.
 
 W procesie tym kluczową rolę odgrywa funkcja aktywacji, która wprowadza nieliniowość do modelu i pozwala na modelowanie
-bardziej złożonych zależności. Przykładowe funkcje aktywacji to *ReLU* (_Rectified Linear Unit_), *sigmoida* czy *tanh*,
+bardziej złożonych zależności. Przykładowe funkcje aktywacji to *ReLU* (_Rectified Linear Unit_), *sigmoid* czy *tanh*,
 które pomagają w decyzji, czy dane wejściowe mają być uwzględnione w obliczeniach w danej warstwie.
 
 W trakcie treningu model uczy się generalizować, czyli wykrywać ogólne wzorce, które będą skuteczne nie tylko dla danych
@@ -148,7 +149,7 @@ nauczyć się, jak przypisać nowe, nieznane dane do właściwej klasy.
 W procesie uczenia modelu, sieć neuronowa analizuje cechy chemiczne wina (takie jak zawartość alkoholu, kwasowość,
 intensywność barwy itp.), a następnie na podstawie tych danych podejmuje decyzję, do której z trzech odmian winogron
 należy dane wino. Model jest trenowany na wcześniej oznaczonych danych (winach o znanych odmianach), a celem jest
-minimalizacja błędu klasyfikacji, aby przewidywania modelu były jak najbardziej dokładne.
+minimalizacja błędu klasyfikacji, aby przewidywania modelu były jak najdokładniejsze.
 
 == Ocena skuteczności modelu
 
@@ -196,7 +197,7 @@ do rzeczywistych etykiet.
 \
 
 Analiza danych wejściowych to kluczowy etap w każdym projekcie uczenia maszynowego, który pozwala na zrozumienie
-struktury danych, ich właściwości oraz przygotowanie ich do dalszego przetwarzania i trenowania modelu. W tym przypadku,
+struktury danych, ich właściwości oraz przygotowanie ich do dalszego przetwarzania i trenowania modelu. W tym przypadku
 celem analizy jest dokładne zrozumienie cech chemicznych win, które stanowią podstawę do klasyfikacji różnych odmian
 winogron.
 
@@ -210,12 +211,8 @@ każdego z win, takich jak zawartość alkoholu, kwasowość, intensywność bar
 charakterystykę wina. W zbiorze danych znajdują się również etykiety, które informują o rodzaju odmiany winogron,
 z której pochodzi dane wino.
 
-Dokładnym źródłem danych jest _"PARVUS - An Extendible Package for Data Exploration, Classification
-and Correlation"_. Instytut Analiz Farmaceutycznych i Żywnościowych oraz Technologii, Genua, Włochy. To źródło dostarcza
-narzędzie o nazwie PARVUS, które jest pakietem rozszerzalnym do eksploracji danych, klasyfikacji i analizy korelacji.
-Zostało opracowane przez zespół badaczy w Instytucie, który specjalizuje się w analizach farmaceutycznych
-i żywnościowych. Pakiet ten umożliwia dokładną analizę chemiczną win i może być używany do różnych celów badawczych,
-w tym klasyfikacji różnych rodzajów win.
+Dokładnym źródłem danych jest _"PARVUS - An Extendible Package for Data Exploration, Classification and Correlation"_.
+Instytut Analiz Farmaceutycznych i Żywnościowych oraz Technologii, Genua, Włochy.
 
 == Struktura zbioru danych
 
@@ -322,11 +319,11 @@ W moim przypadku od $-1$ do $1$.
 \
 
 Podział danych na zbiory treningowe i testowe jest kluczowym elementem w procesie uczenia maszynowego, ponieważ pozwala
-na ocenę skuteczności modelu na nowych, nie widzianych wcześniej danych. W moim przypadku zdecydowałem się na podział
+na ocenę skuteczności modelu na nowych, niewidzianych wcześniej danych. W moim przypadku zdecydowałem się na podział
 danych w stosunku $80%$ do $20%$, gdzie $80%$ danych zostało wykorzystane do treningu, a $20%$ do testowania.
 W późniejszych etapach zmieniałem ten podział na $70%$ do $30%$ w celach eksperymentów.
 
-Podział danych na zbiory treningowe i testowe pozwala na ocenę skuteczności modelu na nowych, nie widzianych wcześniej
+Podział danych na zbiory treningowe i testowe pozwala na ocenę skuteczności modelu na nowych, niewidzianych wcześniej
 danych. W ten sposób można sprawdzić, jak dobrze model generalizuje swoje umiejętności na nowych danych, a nie tylko
 na tych, które były obecne w zestawie treningowym.
 
@@ -432,7 +429,7 @@ dalszego przetwarzania i trenowania modelu.
 Po przygotowaniu danych przyszedł czas na trenowanie modelu. W tym projekcie zdecydowałem się na wykorzystanie
 biblioteki `Burn` do implementacji modelu, jak i jego trenowania.
 
-Przed samym przystąpieniem do trenowania modelu, podtrzebne jest zdefiniowanie architektury sieci neuronowej,
+Przed samym przystąpieniem do trenowania modelu, potrzebne jest zdefiniowanie architektury sieci neuronowej,
 przygotowanie danych treningowych i testowych oraz wybór odpowiednich hiperparametrów, takich jak współczynnik uczenia,
 liczba epok czy rozmiar wsadu (_batch size_).
 
@@ -441,7 +438,7 @@ liczba epok czy rozmiar wsadu (_batch size_).
 \
 
 Trenowanie modelu w bibliotece `Burn` wymaga tzw. _Batcherów_ (plik #link(<batcher>)[`batcher.rs`] w części skryptowej),
-które są odpowiedzialne za dostarczanie danych do modelu w postaci wsadów (_batches_). _Batcher_ przyjmuje strukture
+które są odpowiedzialne za dostarczanie danych do modelu w postaci wsadów (_batches_). _Batcher_ przyjmuje strukturę
 _Dataset_ (plik #link(<dataset>)[`dataset.rs`], w części skryptowej) jako dane wejściowe i dzieli je na wsady o
 określonym rozmiarze.
 
@@ -460,7 +457,7 @@ przekazywane do modelu podczas treningu.
 
 Ważnym elementem w trenowaniu modelu jest implementacja tensorów, które są podstawowymi strukturami danych w
 bibliotece `Burn`. Tensor reprezentuje wielowymiarowy wektor lub macierz, który jest przechowywany w pamięci urządzenia.
-W przpadku mojego programu, tensory tworzone są w funkcji `batch` w strukturze `WineBatcher`. Przechowują one dane
+W przypadku mojego programu tensory tworzone są w funkcji `batch` w strukturze `WineBatcher`. Przechowują one dane
 wejściowe i wyjściowe dla modelu, które są przekazywane do sieci neuronowej.
 
 Pierwsze tensor jest tworzony dla każdego wina z danych treningowych, a drugi tensor przechowuje etykietę klasy dla
@@ -570,10 +567,11 @@ modelu różnią się od rzeczywistych etykiet w danych. Następnie, wartość s
 sieci neuronowej w procesie optymalizacji.
 
 `Burn` dostarcza wiele wbudowanych metryk, które można wykorzystać do oceny skuteczności modelu podczas treningu. W moim
-przypadku, wykorzystałem metryki *dokładność* (_accuracy_) i *strata* (_loss_), które są kluczowe w problemach klasyfikacji.
+przypadku, wykorzystałem metryki *dokładność* (_accuracy_) i *strata* (_loss_), które są kluczowe w problemach
+klasyfikacji.
 
-`Burn` również dostarcza bardzo przejrzysty interfejs pokazujący przebieg treningu, w tym wartości metryk, czas treningu,
-aktualizacje wag oraz inne informacje, które są przydatne podczas analizy wyników.
+`Burn` również dostarcza bardzo przejrzysty interfejs pokazujący przebieg treningu, w tym wartości metryk, czas
+treningu, aktualizacje wag oraz inne informacje, które są przydatne podczas analizy wyników.
 
 #{
   show raw: set text(size: 0.9em)
@@ -637,9 +635,9 @@ aktualizacje wag oraz inne informacje, które są przydatne podczas analizy wyni
 
 \
 
-Po zakończeniu trenowania modelu, można ocenić jego skuteczność na zbiorze testowym. Początkowo wykorzystałem
+Po zakończeniu trenowania modelu można ocenić jego skuteczność na zbiorze testowym. Początkowo wykorzystałem
 hiperparametry `hidden_size = 64`, `num_epochs = 2000`, `batch_size = 128` i `learning_rate = 1.0e-3`. Te parametry
-pozwoliły mi uzyskać dokładność na poziomie około $100%$ na zbiorze treningowym, a $96%$ na zbiorze testowym. Wyniki te
+pozwoliły mi uzyskać dokładność na poziomie około $100%$ na zbiorze treningowym, a $94%$ na zbiorze testowym. Wyniki te
 były obiecujące, ale postanowiłem przeprowadzić serię eksperymentów, aby znaleźć optymalne wartości hiperparametrów.
 
 #figure(
@@ -663,8 +661,22 @@ były obiecujące, ale postanowiłem przeprowadzić serię eksperymentów, aby z
 
 \
 
-W celu poprawy skuteczności modelu, przeprowadziłem serię eksperymentów, w których zmieniałem hiperparametry modelu i
+W celu poprawy skuteczności modelu przeprowadziłem serię eksperymentów, w których zmieniałem hiperparametry modelu i
 nie tylko. Zmiany te miały na celu znalezienie optymalnych wartości, które pozwolą na uzyskanie jak najlepszych wyników.
+
+== Generowanie danych
+
+\
+
+Pierwszym eksperymentem było zbadanie kilku różnych prób danych treningowych i testowych, aby sprawdzić, jak zmiana
+podziału danych wpłynie na skuteczność modelu. W trakcie eksperymentów zmieniałem stosunek danych treningowych do
+testowych, aby sprawdzić, czy zmiana proporcji ma wpływ na wyniki modelu.
+
+Ostatecznie, najlepszym stosunkiem okazał się podział $85%$ danych treningowych do $15%$ danych testowych. Ten podział
+pozwolił mi uzyskać najlepsze wyniki.
+
+Zauważyłem też, że wyniki potrafiły się różnić bez zmiany stosunku podziału, a po samym wygenerowaniu ponownie danych.
+Wynika to z losowości podziału danych na zbiory treningowe i testowe, co może wpływać na wyniki modelu.
 
 == Zmiana hiperparametrów
 
@@ -676,7 +688,8 @@ optymalne wartości, które pozwolą na uzyskanie jak najlepszych wyników.
 
 Odkryłem, że najlepszymi wartościami hiperparametrów są `hidden_size = 64`, `num_epochs = 4000`, `batch_size = 256` i
 `learning_rate = 1.0e-4`. Te wartości pozwoliły mi uzyskać dokładność na poziomie około $100%$ na zbiorze treningowym,
-a $96.6%$ na zbiorze testowym.
+a $98.667%$ na zbiorze testowym. Strata modelu była również na niskim poziomie - około $8.802e-3$ dla zbioru
+treningowego i $0.081$ dla zbioru testowego.
 
 #figure(
   image("./images/acc_4000_256_64_-04.jpg"),
@@ -724,7 +737,7 @@ modelu uwzględniało m.in. miarę loss oraz dokładność, które pozwoliły na
 
 W pracy uwzględniono także kluczowe aspekty technologiczne związane z używaną biblioteką - `Burn`. Przygotowanie danych
 i ich odpowiednia obróbka są niezbędne, by model mógł działać skutecznie, a wyniki testów wskazują na pozytywne efekty
-zastosowanych rozwiązań w kontekście klasyfikacji win. Dzięki tym technologiom, możliwe jest uzyskanie dokładnych
+zastosowanych rozwiązań w kontekście klasyfikacji win. Dzięki tym technologiom możliwe jest uzyskanie dokładnych
 prognoz dotyczących typu wina, co może mieć zastosowanie w różnych dziedzinach, od przemysłu winiarskiego po
 zastosowania badawcze w naukach chemicznych.
 
@@ -886,17 +899,17 @@ zastosowania badawcze w naukach chemicznych.
     let table = table.table().title(vec![
       "y_t".cell().bold(true),
       "alcohol".cell().bold(true),
-      "malic_acid".cell().bold(true),
+      "malic acid".cell().bold(true),
       "ash".cell().bold(true),
-      "alcalinity_of_ash".cell().bold(true),
+      "alcalinity\nof ash".cell().bold(true),
       "magnesium".cell().bold(true),
-      "total_phenols".cell().bold(true),
+      "total\nphenols".cell().bold(true),
       "flavanoids".cell().bold(true),
-      "nonflavanoid_phenols".cell().bold(true),
+      "nonflavanoid\nphenols".cell().bold(true),
       "proanthocyanins".cell().bold(true),
-      "color_intensity".cell().bold(true),
+      "color\nintensity".cell().bold(true),
       "hue".cell().bold(true),
-      "od280_od315_of_diluted_wines".cell().bold(true),
+      "od280 od315\nof diluted\nwines".cell().bold(true),
       "proline".cell().bold(true),
     ]);
 
@@ -939,19 +952,22 @@ zastosowania badawcze w naukach chemicznych.
     for (class, count) in class_counts.iter() {
       let num_train = (count * 85) / 100;
 
-      let mut class_wines = wines.iter().filter(|(_, &y)| y == *class).collect::<Vec<_>>();
+      let mut class_wines = wines
+        .iter()
+        .filter(|(_, &y)| y == *class)
+        .collect::<Vec<_>>();
       class_wines.shuffle(&mut thread_rng());
 
       let (test, train) = class_wines.split_at(num_train as usize);
 
       for (x, y) in train.into_iter() {
-        x_train.push(x.clone().clone());
-        y_t_train.push(y.clone().clone());
+        x_train.push((*x).clone());
+        y_t_train.push((*y).clone());
       }
 
       for (x, y) in test.iter() {
-        x_test.push(x.clone().clone());
-        y_t_test.push(y.clone().clone());
+        x_test.push((*x).clone());
+        y_t_test.push((*y).clone());
       }
     }
 
@@ -966,7 +982,6 @@ zastosowania badawcze w naukach chemicznych.
 
     class_counts
   }
-
   ```],
   caption: `prepare_data.rs`,
 )<prepare_data>
@@ -1341,27 +1356,27 @@ zastosowania badawcze w naukach chemicznych.
   use burn::backend::{CudaJit};
   use burn::data::dataset::Dataset;
   use burn::{
-      backend::{Autodiff, Wgpu},
-      optim::AdamConfig,
+    backend::{Autodiff, Wgpu},
+    optim::AdamConfig,
   };
   use si_project::dataset::WineDataset;
   use si_project::model::WineModelConfig;
   use si_project::training::{train, TrainingConfig};
 
   fn main() {
-      // type MyBackend = Wgpu<f32, i32>;
-      type MyBackend = CudaJit<f32, i32>;
-      type MyAutodiffBackend = Autodiff<MyBackend>;
+    // type MyBackend = Wgpu<f32, i32>;
+    type MyBackend = CudaJit<f32, i32>;
+    type MyAutodiffBackend = Autodiff<MyBackend>;
 
-      // let device = burn::backend::wgpu::WgpuDevice::default();
-      let device = CudaDevice::default();
+    // let device = burn::backend::wgpu::WgpuDevice::default();
+    let device = CudaDevice::default();
 
-      let artifact_dir = "./artifacts";
-      train::<MyAutodiffBackend>(
-          artifact_dir,
-          TrainingConfig::new(WineModelConfig::new(3, 64), AdamConfig::new()),
-          device.clone(),
-      );
+    let artifact_dir = "./artifacts";
+    train::<MyAutodiffBackend>(
+      artifact_dir,
+      TrainingConfig::new(WineModelConfig::new(3, 64), AdamConfig::new()),
+      device.clone(),
+    );
   }
   ```],
   caption: `main.rs`
