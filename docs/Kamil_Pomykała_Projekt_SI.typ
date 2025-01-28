@@ -20,6 +20,8 @@
 #show figure: set block(breakable: true)
 // Set font and color for inline code
 #show raw: set text(font: "JetBrains Mono", fill: rgb(60, 163, 88, 255))
+// Set font for inline math
+#show math.equation: set text(fill: rgb(0, 0, 0, 255))
 // Change color of figure's captions
 #show figure: set text(fill: rgb(80, 80, 80, 255), style: "italic")
 
@@ -39,7 +41,7 @@
 
 #align(grid(
   columns: (auto, 1fr),
-  [#align(text("24.01.2025 r.", size: 0.8em), end)],
+  [#align(text("28.01.2025 r.", size: 0.8em), end)],
   [#align(text(smallcaps("Kamil Pomykała, 174725"), size: 1.1em), end)],
 ), right + bottom)
 
@@ -115,27 +117,143 @@ automatycznej klasyfikacji produktów.
 
 \
 
-Uczenie modelu w kontekście Deep Learningu polega na wykorzystaniu zaawansowanych algorytmów sztucznej inteligencji,
-szczególnie sieci neuronowych, do rozpoznawania wzorców i zależności w danych. _Deep Learning_, będący poddziedziną
-uczenia maszynowego, różni się od tradycyjnych metod uczenia maszynowego tym, że automatycznie wykonuje proces
-ekstrakcji cech z surowych danych, bez potrzeby ręcznego selekcjonowania istotnych atrybutów. Proces ten odbywa się
-dzięki warstwom sieci neuronowych, które są odpowiedzialne za stopniowe przekształcanie danych wejściowych na
-reprezentacje coraz bardziej złożone.
+Uczenie modelu w kontekście Deep Learningu polega na wykorzystaniu takich algorytmów sztucznej inteligencji jak
+gradientowe wstecznej propagacji (backpropagation), konwolucyjne sieci neuronowe (CNN), rekurencyjne sieci neuronowe
+(RNN), sieci neuronowe o długiej pamięci krótkotrwałej (LSTM) oraz transformatory, do rozpoznawania wzorców i
+zależności w danych.
+
+_Deep Learning_ charakteryzuje się zdolnością do pracy z dużymi i złożonymi zestawami danych, wysoką skalowalnością oraz
+możliwością uczenia modeli o bardzo wielu parametrach, co pozwala na rozwiązywanie problemów wymagających znacznych mocy
+obliczeniowych i głębokiego modelowania nieliniowych zależności. Co istotne, techniki _Deep Learningu_ sprawdzają się
+również w przypadku prostszych i dobrze przygotowanych zbiorów danych, gdzie dzięki swojej elastyczności potrafią
+efektywnie modelować struktury i wzorce w danych.
 
 Uczenie modelu odbywa się w procesie zwanym treningiem, który polega na minimalizowaniu funkcji błędu.
 Funkcja ta mierzy, jak bardzo przewidywania modelu różnią się od rzeczywistych etykiet w danych. Podczas treningu sieć
 neuronowa iteracyjnie dostosowuje swoje parametry (_wagi i biasy_), aby jak najlepiej odwzorować prawdziwe dane wyjściowe.
-Używa się tutaj algorytmu optymalizacji, najczęściej *spadku gradientu* (_Gradient Descent_), który pozwala na
-modyfikację wag w taki sposób, by minimalizować błąd predykcji.
 
-W procesie tym kluczową rolę odgrywa funkcja aktywacji, która wprowadza nieliniowość do modelu i pozwala na modelowanie
-bardziej złożonych zależności. Przykładowe funkcje aktywacji to *ReLU* (_Rectified Linear Unit_), *sigmoid* czy *tanh*,
-które pomagają w decyzji, czy dane wejściowe mają być uwzględnione w obliczeniach w danej warstwie.
+#pagebreak()
 
-W trakcie treningu model uczy się generalizować, czyli wykrywać ogólne wzorce, które będą skuteczne nie tylko dla danych
-treningowych, ale także dla nowych, niewidzianych wcześniej przykładów. Aby uniknąć przeuczenia (_overfitting_),
-stosuje się techniki, takie jak regularizacja, *_dropout_* czy *_early stopping_*, które pomagają utrzymać model w równowadze
-pomiędzy dokładnością a zdolnością do uogólniania.
+=== Algorytmy optymalizacji
+
+\
+
+Proces optymalizacji w sieciach neuronowych opiera się najczęściej na zastosowaniu algorytmu *spadku
+gradientu* (_Gradient Descent_), który umożliwia modyfikację wag w celu minimalizacji błędu predykcji.
+Istnieje wiele wariantów tego algorytmu, takich jak _Stochastic Gradient Descent (SGD)_, _Mini-batch
+Gradient Descent_, a także bardziej zaawansowane metody, jak _Adam (Adaptive Moment Estimation)_,
+_RMSprop_ czy _Adagrad_.
+
+Każdy z tych wariantów oferuje różne podejścia do aktualizacji wag, co pozwala na przyspieszenie
+procesu uczenia oraz poprawę stabilności w zależności od charakterystyki danych i struktury modelu.
+
+#figure(
+  image("./images/gradient-descent.jpg", width: 75%),
+  caption: [Ilustracja działania algorytmu spadku gradientu @gradient-descent],
+)
+
+=== Funkcje aktywacji
+\
+
+Funkcje aktywacji odgrywają kluczową rolę w działaniu sieci neuronowych, wprowadzając nieliniowość do
+modelu i umożliwiając modelowanie bardziej złożonych zależności. Bez funkcji aktywacji sieci
+byłyby jedynie liniowymi modelami, co znacznie ograniczałoby ich zdolność do reprezentowania
+skomplikowanych wzorców.
+
+Jedną z najczęściej stosowanych funkcji aktywacji jest *ReLU* (_Rectified Linear Unit_), która
+zwraca wartość wejściową, jeśli jest dodatnia, a zero w przeciwnym wypadku. Funkcja ta jest
+szybka w obliczeniach i skutecznie radzi sobie z problemem zanikania gradientów, co czyni ją
+podstawowym wyborem w wielu współczesnych modelach głębokiego uczenia.
+
+#figure(
+  text($f(x) = max(0,x)$, size: 1.5em),
+  caption: [Wzór funkcji ReLU],
+  gap: 1.2em,
+  kind: "equation",
+  supplement: [Równanie],
+)
+
+#figure(
+  image("./images/relu.jpg", width: 75%),
+  caption: [Wykres liniowy ReLU @relu],
+)
+
+\
+
+Inną popularną funkcją jest *sigmoid*, która przekształca wartości wejściowe na zakres od 0 do 1,
+dzięki czemu świetnie nadaje się do problemów binarnej klasyfikacji. Jednak jej zastosowanie
+w głębszych sieciach bywa ograniczone z powodu problemu zanikania gradientów, który może
+utrudniać efektywne uczenie.
+
+#figure(
+  text($f(x) = frac(1, 1+e^(-x))$, size: 1.5em),
+  caption: [Wzór funkcji sigmoidalnej @sigmoid],
+  gap: 1.2em,
+  kind: "equation",
+  supplement: [Równanie],
+)
+
+#figure(
+  image("./images/sigmoid.png", width: 60%),
+  caption: [Wykres funkcji sigmoidalnej @sigmoid],
+)
+
+\
+
+Podobnie funkcja *tanh* (_hiperboliczna tangens_) odwzorowuje wartości na zakres od -1 do 1, co sprawia,
+że jest bardziej symetryczna względem zera w porównaniu do sigmoid. To może prowadzić do
+szybszej zbieżności w niektórych przypadkach, ale również cierpi z powodu problemu zanikania
+gradientów w głębokich sieciach.
+
+#figure(
+  text($f(x) = frac(e^x - e^(-x), e^x + e^(-x))$, size: 1.5em),
+  caption: [Wzór funkcji tanh],
+  gap: 1.2em,
+  kind: "equation",
+  supplement: [Równanie],
+)
+
+#figure(
+  image("./images/tanh.png", width: 75%),
+  caption: [Wykres funkcji tanh @tanh],
+)
+
+\
+
+Warto również wspomnieć o nowoczesnych wariantach funkcji aktywacji, takich jak *Leaky ReLU*,
+która jest modyfikacją ReLU i pozwala na przekazywanie niewielkiej wartości (np. 0.01x) dla ujemnych
+wejść, co zmniejsza problem martwych neuronów. Funkcja *ELU* (_Exponential Linear Unit_) dodatkowo łagodzi
+problem zerowych wartości w ujemnym zakresie, co może przyspieszać uczenie modeli.
+
+=== Regularyzacja i unikanie przeuczenia
+\
+
+Podczas treningu model głębokiego uczenia stara się nauczyć ogólnych wzorców, które będą skuteczne nie
+tylko dla danych treningowych, ale również dla nowych, niewidzianych wcześniej przykładów. Proces ten,
+zwany generalizacją, jest kluczowy dla efektywności modelu w rzeczywistych zastosowaniach. Jednak modele
+głębokiego uczenia, ze względu na swoją wysoką złożoność, są narażone na ryzyko przeuczenia (_overfittingu_),
+gdzie model zapamiętuje szczegóły danych treningowych kosztem ogólnych wzorców.
+
+Aby uniknąć przeuczenia, stosuje się techniki regularyzacji, które mają na celu kontrolowanie złożoności
+modelu i zapobieganie nadmiernemu dopasowaniu do danych treningowych. Jedną z najpopularniejszych metod
+regularyzacji jest *_dropout_*, która polega na losowym wyłączaniu neuronów w trakcie treningu, co pozwala
+na zwiększenie odporności modelu na przeuczenie.
+
+#figure(
+  image("./images/dropout.jpg", width: 60%),
+  caption: [Schemat działania dropout. Sieć neuronowa bez (lewa strona) i z dropoutem (prawa strona) @dropout],
+)
+
+\
+
+Innym popularnym podejściem jest *_early stopping_*, które polega na monitorowaniu skuteczności modelu
+na zbiorze walidacyjnym i zatrzymywaniu treningu, gdy skuteczność przestaje rosnąć. Dzięki temu można
+uniknąć nadmiernego dopasowania modelu do danych treningowych i poprawić jego zdolność do generalizacji.
+
+#figure(
+  image("./images/early-stopping.jpg", width: 60%),
+  caption: [Schemat działania early stopping @early-stopping],
+)
 
 == Nadzorowane uczenie
 
@@ -190,8 +308,6 @@ różnicę między przewidywaną a rzeczywistą rozkładem prawdopodobieństw dl
 _loss_, tym lepsza jest skuteczność modelu, ponieważ oznacza to, że przewidywania modelu są bardziej zbliżone
 do rzeczywistych etykiet.
 
-#pagebreak()
-
 = Analiza danych wejściowych
 
 \
@@ -213,6 +329,8 @@ z której pochodzi dane wino.
 
 Dokładnym źródłem danych jest _"PARVUS - An Extendible Package for Data Exploration, Classification and Correlation"_.
 Instytut Analiz Farmaceutycznych i Żywnościowych oraz Technologii, Genua, Włochy.
+
+#pagebreak()
 
 == Struktura zbioru danych
 
@@ -266,6 +384,9 @@ czy duplikatów. W przypadku zbioru danych, który został wykorzystany w tym pr
 Jedynym ważnym aspektem była zmiana etykiet klas, aby numeracja zaczynała się od $0$, co jest wymagane przez bibliotekę
 `Burn`. Wcześniej etykiety klas były oznaczone jako $1$, $2$ i $3$, co zostało zmienione na $0$, $1$ i $2$.
 
+Bez tej zmiany mój model miał problem z uczeniem się. Uzyskałem zaledwie $70%$ dokładności. Po zmianie etykiet klas na
+$0$, $1$ i $2$ model od razu zaczął osiągać wyniki na poziomie $95%$ dokładności.
+
 == Normalizacja danych
 
 \
@@ -293,6 +414,8 @@ W moim przypadku od $-1$ do $1$.
   )
 }
 
+#pagebreak()
+
 #{
   show raw: set text(size: 0.9em)
   figure(
@@ -312,8 +435,6 @@ W moim przypadku od $-1$ do $1$.
   )
 }
 
-#pagebreak()
-
 == Podział na zbiory treningowe i testowe
 
 \
@@ -321,7 +442,7 @@ W moim przypadku od $-1$ do $1$.
 Podział danych na zbiory treningowe i testowe jest kluczowym elementem w procesie uczenia maszynowego, ponieważ pozwala
 na ocenę skuteczności modelu na nowych, niewidzianych wcześniej danych. W moim przypadku zdecydowałem się na podział
 danych w stosunku $80%$ do $20%$, gdzie $80%$ danych zostało wykorzystane do treningu, a $20%$ do testowania.
-W późniejszych etapach zmieniałem ten podział na $70%$ do $30%$ w celach eksperymentów.
+W późniejszych etapach zmieniałem ten podział w celach eksperymentów (@experiments).
 
 Podział danych na zbiory treningowe i testowe pozwala na ocenę skuteczności modelu na nowych, niewidzianych wcześniej
 danych. W ten sposób można sprawdzić, jak dobrze model generalizuje swoje umiejętności na nowych danych, a nie tylko
@@ -372,8 +493,6 @@ Każda klasa jest losowana osobna, aby zachować równowagę między klasami w o
   )
 }
 
-#pagebreak()
-
 == Zapis danych do plików
 
 \
@@ -407,6 +526,8 @@ zapisane w postaci czterech plików: `x_train.pkl`, `y_t_train.pkl`, `x_test.pkl
   )
 }
 
+#pagebreak()
+
 == Podsumowanie
 
 \
@@ -416,11 +537,9 @@ normalizacja, podział na zbiory treningowe i testowe oraz zapis do plików. Dzi
 dalszego przetwarzania i trenowania modelu.
 
 #figure(
-  image("./images/data-table.jpg"),
+  image("./images/data-table.jpg", width: 90%),
   caption: "Tabela z częścią danych przygotowanych do trenowania modelu",
 )
-
-#pagebreak()
 
 = Trenowanie modelu
 
@@ -448,10 +567,8 @@ przekazywane do modelu podczas treningu.
 
 #figure(
   image("./images/data-flow-graph.png"),
-  caption: "Schemat przepływu danych w procesie trenowania modelu",
+  caption: [Schemat przepływu danych w procesie trenowania modelu @burn-dataset],
 )
-
-=== Implementacja tensorów
 
 \
 
@@ -510,8 +627,6 @@ bezpośrednio do modelu.
   )
 }
 
-#pagebreak()
-
 == Definicja modelu
 
 \
@@ -521,7 +636,7 @@ Składa się z trzech warstw sieci neuronowej: jednej warstwy wejściowej, jedne
 wyjściowej.
 
 Warstwa wejściowa ma 13 neurony, które odpowiadają 13 cechom chemicznym wina. Warstwa ukryta ma liczbę neuronów, która
-jest określona przez hiperparametr `hidden_size`. Na początku eksperymentów przyjąłem wartość `hidden_size = 64`.
+jest określona przez hiperparametry `K1` i `K2`. Na początku eksperymentów przyjąłem wartości `K1 = 64` i `K2 = 32`.
 Warstwa wyjściowa ma 3 neurony, które odpowiadają trzem klasom winogron.
 
 Model wykorzystuje funkcję aktywacji *ReLU* (_Rectified Linear Unit_) w warstwie ukrytej i wejściowej oraz funkcję
@@ -631,33 +746,29 @@ treningu, aktualizacje wag oraz inne informacje, które są przydatne podczas an
   caption: [Interfejs `Burn` podczas treningu modelu],
 )
 
-=== Wyniki trenowania
-
 \
 
 Po zakończeniu trenowania modelu można ocenić jego skuteczność na zbiorze testowym. Początkowo wykorzystałem
-hiperparametry `hidden_size = 64`, `num_epochs = 2000`, `batch_size = 128` i `learning_rate = 1.0e-3`. Te parametry
+hiperparametry `k1 = 64`, `k2 = 32`, `num_epochs = 2000`, `batch_size = 128` i `learning_rate = 1.0e-3`. Te parametry
 pozwoliły mi uzyskać dokładność na poziomie około $100%$ na zbiorze treningowym, a $94%$ na zbiorze testowym. Wyniki te
 były obiecujące, ale postanowiłem przeprowadzić serię eksperymentów, aby znaleźć optymalne wartości hiperparametrów.
 
 #figure(
   image("./images/acc_2000_128_64_-03.jpg"),
-  caption: [Wykres dokładności modelu dla hiperparametrów `hidden_size = 64`, `num_epochs = 2000`, `batch_size = 128` i `learning_rate = 1e-3`],
+  caption: [Wykres dokładności modelu dla hiperparametrów `k1 = 64`, `k2 = 32`, `num_epochs = 2000`, `batch_size = 128` i `learning_rate = 1e-3`],
 )
 
 #figure(
   image("./images/loss_2000_128_64_-03.jpg"),
-  caption: [Wykres straty modelu dla hiperparametrów `hidden_size = 64`, `num_epochs = 2000`, `batch_size = 128` i `learning_rate = 1e-3`],
+  caption: [Wykres straty modelu dla hiperparametrów `k1 = 64`, `k2 = 32`, `num_epochs = 2000`, `batch_size = 128` i `learning_rate = 1e-3`],
 )
 
 #figure(
   image("./images/table_2000_128_64_-03.jpg", width: 80%),
-  caption: [Tabela wyników modelu dla hiperparametrów `hidden_size = 64`, `num_epochs = 2000`, `batch_size = 128` i `learning_rate = 1e-3`],
+  caption: [Tabela wyników modelu dla hiperparametrów `k1 = 64`, `k2 = 32`, `num_epochs = 2000`, `batch_size = 128` i `learning_rate = 1e-3`],
 )
 
-
-
-= Eksperymenty
+= Eksperymenty <experiments>
 
 \
 
@@ -682,29 +793,140 @@ Wynika to z losowości podziału danych na zbiory treningowe i testowe, co może
 
 \
 
-Pierwszym krokiem w eksperymentach było zmienienie hiperparametrów modelu, takich jak `hidden_size`, `num_epochs`,
-`batch_size` i `learning_rate`. W trakcie eksperymentów testowałem różne wartości tych parametrów, aby znaleźć
-optymalne wartości, które pozwolą na uzyskanie jak najlepszych wyników.
+Pierwszym krokiem w eksperymentach było zmienienie hiperparametrów modelu, takich jak `num_epochs`, `batch_size`,
+`learning_rate` i ilość neuronów w warstwie ukrytej (`K1` i `K2`). W trakcie eksperymentów testowałem
+różne wartości tych parametrów, aby znaleźć optymalne wartości, które pozwolą na uzyskanie jak najlepszych wyników.
 
-Odkryłem, że najlepszymi wartościami hiperparametrów są `hidden_size = 64`, `num_epochs = 4000`, `batch_size = 256` i
-`learning_rate = 1.0e-4`. Te wartości pozwoliły mi uzyskać dokładność na poziomie około $100%$ na zbiorze treningowym,
-a $98.667%$ na zbiorze testowym. Strata modelu była również na niskim poziomie - około $8.802e-3$ dla zbioru
-treningowego i $0.081$ dla zbioru testowego.
+=== Zmiana liczby neuronów w warstwie ukrytej
 
-#figure(
-  image("./images/acc_4000_256_64_-04.jpg"),
-  caption: [Wykres dokładności modelu dla hiperparametrów `hidden_size = 64`, `num_epochs = 4000`, `batch_size = 256` i `learning_rate = 1e-4`],
-)
+\
+
+Pierwszym eksperymentem było zbadanie, jak zmiana liczby neuronów w warstwie ukrytej wpłynie na skuteczność modelu.
+Poniższa tabela przedstawia wyniki modelu dla różnych wartości parametrów `K1` i `K2`. Ważne jest, żeby wartości `K2`
+były zawsze mniejsze lub równe `K1`, aby zachować redukcję złożoności modelu.
 
 #figure(
-  image("./images/loss_4000_256_64_-04.jpg"),
-  caption: [Wykres straty modelu dla hiperparametrów `hidden_size = 64`, `num_epochs = 4000`, `batch_size = 256` i `learning_rate = 1e-4`],
+  table(
+    columns: 6,
+    table.header(
+      [K1], [K2], [Dokładność treningowa], [Dokładność testowa], [Strata treningowa], [Strata testowa],
+    ),
+    $32$, $16$, $100%$, $96.667%$, $0.018$, $0.106$,
+    $64$, $32$, [*$100%$*], [*$97.333%$*], [*$2.150 dot 10^(-3)$*], [*$0.101$*],
+    $64$, $48$, $100%$, $96.667%$, $6.878 dot 10^(-4)$, $0.103$,
+    $96$, $48$, $100%$, $96.667%$, $6.416 dot 10^(-4)$, $0.115$,
+    $128$, $64$, $100%$, $96%$, $2.755 dot 10^(-4)$, $0.134$,
+  ),
+  caption: [Tabela wyników modelu dla różnych wartości parametrów `K1` i `K2`],
 )
 
+#pagebreak()
+
+Wyniki eksperymentów pokazują, że zmiana liczby neuronów w warstwie ukrytej nie miała znaczącego wpływu na skuteczność
+modelu. Ostatecznie, najlepszymi wartościami hiperparametrów okazały się `K1 = 64` i `K2 = 32`, które pozwoliły mi uzyskać
+dokładność na poziomie $100%$ na zbiorze treningowym, a $97.333%$ na zbiorze testowym. Strata modelu była również na
+niskim poziomie - około $2.150 dot 10^(-3)$ dla zbioru treningowego i $0.101$ dla zbioru testowego. Co ciekawa strata dla
+była trochę większa niż dla innych wartości, ale dokładność była najwyższa.
+
+=== Zmiana liczby epok
+
+\
+
+Kolejnym eksperymentem było zbadanie, jak zmiana liczby epok wpłynie na skuteczność modelu. W trakcie eksperymentów
+zmieniałem wartość parametru `num_epochs`, aby sprawdzić, jak długi czas trenowania ma wpływ na wyniki modelu.
+
+Ostatecznie, najlepszą wartością dla dotychczasowych eksperymentów okazała się liczba epok równa $2000$. Ta wartość
+najlepiej nauczała model. Wartości $>= 3000$ powodowały przeuczenie modelu, co objawiało się wzrostem straty, a wartości
+$<= 1500$ powodowały niedouczenie modelu, co objawiało się niższą dokładnością.
+
+=== Zmiana rozmiaru wsadu
+
+\
+
+Kolejnym eksperymentem było zbadanie, jak zmiana rozmiaru wsadu wpłynie na skuteczność modelu. W trakcie eksperymentów
+zmieniałem wartość parametru `batch_size`, aby sprawdzić, jak liczba próbek przekazywanych do modelu jednocześnie ma
+wpływ na wyniki modelu.
+
+Za mała ilość próbek w wsadzie prowadzić do dużych wahań w procesie uczenia. Biblioteka w takich przypadkach nie
+wyświetla tabeli z wynikami.
+
 #figure(
-  image("./images/table_4000_256_64_-04.jpg", width: 80%),
-  caption: [Tabela wyników modelu dla hiperparametrów `hidden_size = 64`, `num_epochs = 4000`, `batch_size = 256` i `learning_rate = 1e-4`],
+  image("./images/low_batch_size.jpg", width: 90%),
+  caption: "Wykres uczenia modelu dla małego rozmiaru wsadu",
 )
+
+Z kolei zbyt duża ilość próbek prowadzić do wydłużonego procesu uczenia. W takich przypadkach model uczy się wolniej i
+osiąga te same wyniki od pewnego momentu.
+
+Poniższa tabela przedstawia wyniki modelu dla różnych wartości parametru `batch_size`.
+
+#figure(
+  table(
+    columns: 5,
+    table.header(
+      [Rozmiar wsadu], [Dokładność treningowa], [Dokładność testowa], [Strata treningowa], [Strata testowa],
+    ),
+    $64$, [-], [-], [-], [-],
+    $128$, [*$100%$*], [*$97.333%$*], [*$2.150 dot 10^(-3)$*], [*$0.061$*],
+    $192$, $100%$, $97.333%$, $2.150 dot 10^(-3)$, $0.101$,
+    $256$, $100%$, $97.333%$, $2.150 dot 10^(-3)$, $0.101$,
+    $512$, $100%$, $97.333%$, $2.150 dot 10^(-3)$, $0.101$,
+    $1024$, $100%$, $97.333%$, $2.150 dot 10^(-3)$, $0.101$,
+  )
+)
+
+Jak widać, zmiana rozmiaru wsadu nie ma praktycznie wpływu na skuteczność modelu. Ostatecznie, najlepszą wartością
+hiperparametru okazał się `batch_size = 128`, ale na wykresie uczenia widać było nadal wahania. Dlatego zdecydowałem się
+na wartość `batch_size = 256`, która pozwoliła mi uzyskać stabilne wyniki.
+
+=== Zmiana współczynnika uczenia
+
+\
+
+Ostatnim eksperymentem było zbadanie, jak zmiana współczynnika uczenia wpłynie na skuteczność modelu. W trakcie eksperymentów
+zmieniałem wartość parametru `learning_rate`, aby sprawdzić, która wartość pozwoli na uzyskanie najlepszych i stabilnych
+wyników.
+
+Dla wysokiego współczynnika uczenia model uczył się szybko, ale miał problem z osiągnięciem stabilnych wyników. Stara
+była bardzo niska dla zbioru treningowego, ale rosnąca dla zbioru testowego.
+
+#figure(
+  image("./images/high_learning_rate.jpg", width: 75%),
+  caption: [Wykres uczenia dla `learning_rate = 1.0e-2`],
+)
+
+Dla niskiego współczynnika uczenia model uczył się wolno i nie osiągał dobrych wyników. Nawet po wielu epokach model nie
+osiągał wysokiej dokładności.
+
+#figure(
+  image("./images/low_learning_rate.jpg", width: 75%),
+  caption: [Wykres uczenia dla `learning_rate = 1.0e-6`],
+)
+
+Poniższa tabela przedstawia wyniki modelu dla różnych wartości parametru `learning_rate`.
+
+#figure(
+  table(
+    columns: (auto, 1fr, 1fr, auto, 1fr),
+    table.header(
+      [Współczynnik uczenia], [Dokładność\ treningowa], [Dokładność\ testowa], [Strata treningowa], [Strata testowa],
+    ),
+    $1.0 dot 10^(-2)$, $100%$, $97.333%$, $2.150 dot 10^(-3)$, $0.101$,
+    $5.0 dot 10^(-3)$, [*$100%$*], [*$98.667%$*], [*$0.000 dot 10^(-0)$ \ (Graniczna wartość)*], [*$0.091$*],
+    $1.0 dot 10^(-3)$, $100%$, $97.333%$, $1.022 dot 10^(-7)$, $0.103$,
+    $5.0 dot 10^(-4)$, $100%$, $97.333%$, $3.572 dot 10^(-6)$, $0.105$,
+    $1.0 dot 10^(-4)$, $100%$, $97.333%$, $2.150 dot 10^(-3)$, $0.101$,
+    $5.0 dot 10^(-5)$, $100%$, $96.667%$, $0.025$, $0.109$,
+    $1.0 dot 10^(-5)$, $96.429%$, $89.333%$, $0.730$, $0.797$,
+    $1.0 dot 10^(-6)$, $71.429%$, $40.677%$, $1.017$, $1.061$,
+  )
+)
+
+Widać jak bardzo zmiana współczynnika uczenia wpływa na skuteczność modelu. W najlepszych przypadkach model osiągał
+podobną dokładność. Różnica była w stracie, która była najniższa dla wartości `learning_rate = 5.0e-3`, ale
+nadal wartość ta nie pozwalala na osiągnięcie stabilnych wyników. Ostatecznie, najlepszymi i stabilinymi
+wartościami hiperparametrów okazały się `K1 = 64`, `K2 = 32`, `num_epochs = 2000`, `batch_size = 256`
+i `learning_rate = 5.0e-4`.
 
 
 == Zmiana architektury modelu
@@ -712,17 +934,95 @@ treningowego i $0.081$ dla zbioru testowego.
 \
 
 Kolejnym krokiem w eksperymentach było zmienienie architektury modelu, tak aby sprawdzić, czy zmiana liczby neuronów w
-warstwie ukrytej wpłynie na skuteczność modelu. W trakcie eksperymentów testowałem różne wartości parametru `hidden_size`,
-aby znaleźć optymalną wartość, która pozwoli na uzyskanie jak najlepszych wyników.
+warstwie ukrytej wpłynie na skuteczność modelu.
 
-Dodanie kolejnego neuronu w warstwie ukrytej nie zmieniło znacząco wyników modelu. Ostatecznie, najlepszymi wartościami
-hiperparametrów okazały się `hidden_size = 64`, `num_epochs = 4000`, `batch_size = 256` i `learning_rate = 1.0e-4`.
+=== Dodanie drugiej warstwy ukrytej
 
 \
 
-Następnie spróbowałem usunąć warstwę ukrytą z modelu, aby sprawdzić, czy prostsza architektura sieci neuronowej
-będzie skuteczniejsza. Okazało się, że model bez warstwy ukrytej uzyskał gorsze wyniki niż model z warstwą ukrytą, ale
-różnica nie była znacząca. Ostatecznie, zdecydowałem się na model z warstwą ukrytą, ponieważ uzyskał najlepsze wyniki.
+Pierwszym eksperymentem było dodanie drugiej warstwy ukrytej do modelu. W trakcie eksperymentów testowałem różne
+kombinacje wartości parametrów `K1`, `K2` i `K3`, aby sprawdzić, jak zmiana liczby neuronów w warstwach ukrytych wpłynie
+na skuteczność modelu.
+
+Poniższa tabela przedstawia wyniki modelu dla różnych wartości parametrów `K1`, `K2` i `K3`.
+
+#figure(
+  table(
+    columns: 7,
+    table.header(
+      [K1], [K2], [K3], [Dokładność treningowa], [Dokładność testowa], [Strata treningowa], [Strata testowa],
+    ),
+    $48$, $32$, $16$, $100%$, $96.667%$, $3.444 dot 10^(-4)$, $0.116$,
+    $64$, $48$, $32$, [*$100%$*], [*$98%$*], [*$5.458 dot 10^(-6)$*], [*$0.089$*],
+    $128$, $64$, $32$, $100%$, $96%$, $8.391 dot 10^(-6)$, $0.131$,
+    $256$, $128$, $64$, $100%$, $96%$, $6.982 dot 10^(-7)$, $0.135$,
+  ),
+  caption: [Tabela wyników modelu dla różnych wartości parametrów `K1`, `K2` i `K3`],
+)
+
+Wyniki eksperymentów pokazują, że dodanie drugiej warstwy ukrytej miało niewielki wpływ na skuteczność modelu.
+Ostatecznie, najlepszymi wartościami hiperparametrów okazały się `K1 = 64`, `K2 = 48` i `K3 = 32`, które
+pozwoliły mi uzyskać dokładność na poziomie $100%$ na zbiorze treningowym, a $98%$ na zbiorze testowym. Strata modelu
+była również na niskim poziomie - około $5.458 dot 10^(-6)$ dla zbioru treningowego i $0.089$ dla zbioru testowego.
+
+=== Usunięcie warstwy ukrytej
+
+\
+
+Kolejnym eksperymentem było usunięcie warstwy ukrytej z modelu. W trakcie eksperymentów testowałem różne wartości
+parametrów `K1`, aby sprawdzić, jak zmiana liczby neuronów w warstwie wejściowej wpłynie na skuteczność modelu.
+
+Poniższa tabela przedstawia wyniki modelu dla różnych wartości parametru `K1`.
+
+#figure(
+  table(
+    columns: 5,
+    table.header(
+      [K1], [Dokładność treningowa], [Dokładność testowa], [Strata treningowa], [Strata testowa],
+    ),
+    $16$, $100%$, $96%$, $0.018$, $0.148$,
+    $32$, $100%$, $96%$, $4.869 dot 10^(-3)$, $0.116$,
+    $64$, [*$100%$*], [*$96%$*], [*$1.625 dot 10^(-3)$*], [*$0.118$*],
+    $128$, $100%$, $96%$, $6.623 dot 10^(-4)$, $0.129$,
+    $256$, $100%$, $96%$, $3.070 dot 10^(-4)$, $0.130$,
+    $512$, $100%$, $96%$, $1.593 dot 10^(-4)$, $0.119$,
+  ),
+  caption: [Tabela wyników modelu dla różnych wartości parametru `K1`],
+)
+
+#pagebreak()
+
+Jak widać, usunięcie warstwy ukrytej miało niewielki, ale negatywny wpływ na skuteczność modelu. Ostatecznie, najlepszą
+wartością hiperparametru okazał się `K1 = 64`, który pozwolił mi uzyskać dokładność na poziomie $100%$ na zbiorze
+treningowym, a $96%$ na zbiorze testowym. Strata modelu była również na niskim poziomie - około $1.625 dot 10^(-3)$ dla
+zbioru treningowego i $0.118$ dla zbioru testowego.
+
+== Zmiana funkcji aktywacji
+
+\
+
+Osatnim eksperymentem było zbadanie, jak zmiana funkcji aktywacji wpłynie na skuteczność modelu.
+W trakcie eksperymentów testowałem różne funkcje aktywacji, takie jak *ReLU*, *LeakyReLU*, *Sigmoid* i *Tanh*.
+
+Poniższa tabela przedstawia wyniki modelu dla różnych funkcji aktywacji.
+
+#figure(
+  table(
+    columns: 5,
+    table.header(
+      [Funkcja aktywacji], [Dokładność treningowa], [Dokładność testowa], [Strata treningowa], [Strata testowa],
+    ),
+    [ReLU], $100%$, $97.333%$, $6.054 dot 10^(-5)$, $0.105$,
+    [LeakyReLU], $100%$, $97.333%$, $6.413 dot 10^(-5)$, $0.105$,
+    [Sigmoid], $100%$, $94.667%$, $0.038$, $0.184$,
+    [Tanh], $100%$, $97.333%$, $5.535 dot 10^(-4)$, $0.111$,
+  ),
+  caption: [Tabela wyników modelu dla różnych funkcji aktywacji],
+)
+
+Wyniki eksperymentów pokazują, że funkcja aktywacji *ReLU* i *LeakyReLU* osiągnęły najlepsze wyniki. *Sigmoid* miała
+najgorsze wyniki, co sugeruje, że ta funkcja aktywacji nie nadaje się do tego problemu. *Tanh* osiągnęła wyniki
+podobne do *ReLU* i *LeakyReLU*, ale była nieco gorsza.
 
 = Podsumowanie
 
@@ -749,6 +1049,10 @@ zastosowania badawcze w naukach chemicznych.
 
 + *Potencjał do zastosowań praktycznych* – Modele klasyfikacyjne oparte na głębokim uczeniu mogą mieć szerokie zastosowanie w przemyśle winiarskim, gdzie dokładne określenie rodzaju wina na podstawie jego właściwości chemicznych może pomóc w procesach produkcji, kontroli jakości i marketingu.
 
+
+#pagebreak()
+
+#bibliography("biblio.yaml")
 
 #pagebreak()
 
@@ -901,15 +1205,15 @@ zastosowania badawcze w naukach chemicznych.
       "alcohol".cell().bold(true),
       "malic acid".cell().bold(true),
       "ash".cell().bold(true),
-      "alcalinity\nof ash".cell().bold(true),
+      "alcalinity of ash".cell().bold(true),
       "magnesium".cell().bold(true),
-      "total\nphenols".cell().bold(true),
+      "total phenols".cell().bold(true),
       "flavanoids".cell().bold(true),
-      "nonflavanoid\nphenols".cell().bold(true),
+      "nonflavanoid phenols".cell().bold(true),
       "proanthocyanins".cell().bold(true),
-      "color\nintensity".cell().bold(true),
+      "color intensity".cell().bold(true),
       "hue".cell().bold(true),
-      "od280 od315\nof diluted\nwines".cell().bold(true),
+      "od280 od315 of diluted wines".cell().bold(true),
       "proline".cell().bold(true),
     ]);
 
@@ -950,7 +1254,7 @@ zastosowania badawcze w naukach chemicznych.
     let wines = x.iter().zip(y_t.iter()).collect::<Vec<_>>();
 
     for (class, count) in class_counts.iter() {
-      let num_train = (count * 85) / 100;
+      let num_train = (count * 80) / 100;
 
       let mut class_wines = wines
         .iter()
@@ -1209,6 +1513,10 @@ zastosowania badawcze w naukach chemicznych.
       let x = self.activation.forward(x);
       let x = self.dropout.forward(x);
 
+      let x = self.hidden_layer.forward(x);
+      let x = self.activation.forward(x);
+      let x = self.dropout.forward(x);
+
       self.output_layer.forward(x)
     }
   }
@@ -1245,7 +1553,8 @@ zastosowania badawcze w naukach chemicznych.
   #[derive(Config, Debug)]
   pub struct WineModelConfig {
     num_classes: usize,
-    hidden_size: usize,
+    k1: usize,
+    k2: usize,
     #[config(default = "0.5")]
     dropout: f64,
   }
@@ -1253,9 +1562,9 @@ zastosowania badawcze w naukach chemicznych.
   impl WineModelConfig {
     pub fn init<B: Backend>(&self, device: &B::Device) -> WineModel<B> {
       WineModel {
-        input_layer: LinearConfig::new(13, self.hidden_size).init(device),
-        hidden_layer: LinearConfig::new(self.hidden_size, self.hidden_size).init(device),
-        output_layer: LinearConfig::new(self.hidden_size, self.num_classes).init(device),
+        input_layer: LinearConfig::new(13, self.k1).init(device),
+        hidden_layer: LinearConfig::new(self.k1, self.k2).init(device),
+        output_layer: LinearConfig::new(self.k2, self.num_classes).init(device),
         activation: Relu::new(),
         dropout: DropoutConfig::new(self.dropout).init(),
       }
@@ -1284,7 +1593,7 @@ zastosowania badawcze w naukach chemicznych.
   pub struct TrainingConfig {
     pub model: WineModelConfig,
     pub optimizer: AdamConfig,
-    #[config(default = 4000)]
+    #[config(default = 2000)]
     pub num_epochs: usize,
     #[config(default = 256)]
     pub batch_size: usize,
@@ -1292,7 +1601,7 @@ zastosowania badawcze w naukach chemicznych.
     pub num_workers: usize,
     #[config(default = 42)]
     pub seed: u64,
-    #[config(default = 1e-4)]
+    #[config(default = 5e-3)]
     pub learning_rate: f64,
   }
 
@@ -1374,7 +1683,7 @@ zastosowania badawcze w naukach chemicznych.
     let artifact_dir = "./artifacts";
     train::<MyAutodiffBackend>(
       artifact_dir,
-      TrainingConfig::new(WineModelConfig::new(3, 64), AdamConfig::new()),
+      TrainingConfig::new(WineModelConfig::new(3, 64, 32), AdamConfig::new()),
       device.clone(),
     );
   }

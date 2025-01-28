@@ -1,0 +1,43 @@
+gradient-descent:
+  type: Web
+  title: Gradient Descent
+  author: David Andrés
+  url: https://mlpills.dev/machine-learning/gradient-descent/"
+
+relu:
+  type: Web
+  title: A Gentle Introduction to the Rectified Linear Unit (ReLU)
+  author: Jason Brownlee
+  url: https://machinelearningmastery.com/rectified-linear-activation-function-for-deep-learning-neural-networks/
+
+sigmoid:
+  type: Web
+  title: Sigmoid function
+  author: Wikipedia
+  url: https://en.wikipedia.org/wiki/Sigmoid_function
+
+tanh:
+  type: Misc
+  title: Hyperbolic tangent function
+  author: Wikipedia
+  url: https://commons.wikimedia.org/wiki/File:Hyperbolic_Tangent.svg
+
+dropout:
+  type: Web
+  title: A Review on Dropout Regularization Approaches for Deep Neural Networks within the Scholarly Domain
+  author:
+    - Imrus Salehin
+    - Dae-Ki Kang
+  url: https://www.mdpi.com/2079-9292/12/14/3106
+
+early-stopping:
+  type: Web
+  title: The Mystery of Early Stopping
+  author: Konstantin Tretyakov
+  url: https://fouryears.eu/2017/12/06/the-mystery-of-early-stopping/
+
+burn-dataset:
+  type: Web
+  title: "Building Blocks #1: Dataset & Data Loading"
+  author: Guillaume Lagrange
+  url: https://burn.dev/blog/building-blocks-dataset/
