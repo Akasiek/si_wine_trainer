@@ -23,6 +23,10 @@ impl<B: Backend> WineModel<B> {
         let x = self.activation.forward(x);
         let x = self.dropout.forward(x);
 
+        let x = self.hidden_layer.forward(x);
+        let x = self.activation.forward(x);
+        let x = self.dropout.forward(x);
+
         self.output_layer.forward(x)
     }
 }
@@ -59,7 +63,8 @@ impl<B: Backend> ValidStep<WineBatch<B>, ClassificationOutput<B>> for WineModel<
 #[derive(Config, Debug)]
 pub struct WineModelConfig {
     num_classes: usize,
-    hidden_size: usize,
+    k1: usize,
+    k2: usize,
     #[config(default = "0.5")]
     dropout: f64,
 }
@@ -67,9 +72,9 @@ pub struct WineModelConfig {
 impl WineModelConfig {
     pub fn init<B: Backend>(&self, device: &B::Device) -> WineModel<B> {
         WineModel {
-            input_layer: LinearConfig::new(13, self.hidden_size).init(device),
-            hidden_layer: LinearConfig::new(self.hidden_size, self.hidden_size).init(device),
-            output_layer: LinearConfig::new(self.hidden_size, self.num_classes).init(device),
+            input_layer: LinearConfig::new(13, self.k1).init(device),
+            hidden_layer: LinearConfig::new(self.k1, self.k2).init(device),
+            output_layer: LinearConfig::new(self.k2, self.num_classes).init(device),
             activation: Relu::new(),
             dropout: DropoutConfig::new(self.dropout).init(),
         }
